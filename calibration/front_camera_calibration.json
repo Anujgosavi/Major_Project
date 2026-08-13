@@ -1,0 +1,17 @@
+{
+  "reference_profile": {
+    "face_width_norm": 0.285,
+    "estimated_distance_cm": 60.0,
+    "head_pitch_deg": 0.0,
+    "head_yaw_deg": 0.0,
+    "head_roll_deg": 0.0,
+    "shoulder_tilt_deg": 0.0,
+    "mean_eye_open_ratio": 0.245,
+    "shoulder_width": 0.42
+  },
+  "distance_calibration": {
+    "model_type": "inverse",
+    "a": 15.244,
+    "b": -0.0543
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "distance": {
+    "non_safe_min_cm": 40.0,
+    "warning_min_cm": 40.0,
+    "safe_min_cm": 45.0,
+    "safe_max_cm": 75.0,
+    "warning_max_cm": 85.0,
+    "non_safe_max_cm": 85.0
+  },
+  "head_pitch": {
+    "warning_deg": 15.0,
+    "non_safe_deg": 30.0
+  },
+  "head_yaw": {
+    "warning_deg": 15.0,
+    "non_safe_deg": 30.0
+  },
+  "shoulder_tilt": {
+    "warning_deg": 10.0,
+    "non_safe_deg": 20.0
+  },
+  "gaze": {
+    "enabled": false,
+    "reason": "Supporting measurement; not currently used as an independent safety trigger."
+  },
+  "blink": {
+    "enabled": false,
+    "reason": "Informational measurement; not currently used as an independent safety trigger."
+  },
+  "head_roll": {
+    "enabled": true,
+    "warning_deg": 15.0,
+    "non_safe_deg": 30.0
+  },
+  "eye_openness": {
+    "enabled": true,
+    "warning_ratio": 0.25,
+    "non_safe_ratio": 0.15
+  },
+  "temporal": {
+    "warning_seconds": 2.0,
+    "non_safe_seconds": 5.0
+  }
+}

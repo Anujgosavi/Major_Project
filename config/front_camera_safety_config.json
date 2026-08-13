@@ -1,0 +1,22 @@
+{
+  "version": "front-camera-safety-v2",
+  "states": [
+    "SAFE",
+    "WARNING",
+    "NON-SAFE"
+  ],
+  "safe_z_threshold": 2.0,
+  "warning_persistence_seconds": 2.0,
+  "non_safe_persistence_seconds": 5.0,
+  "distance_policy": {
+    "non_safe_min_cm": 40.0,
+    "safe_min_cm": 45.0,
+    "safe_max_cm": 75.0,
+    "non_safe_max_cm": 85.0
+  },
+  "feature_thresholds": {
+    "head_pitch_deg": 15.0,
+    "head_yaw_deg": 15.0,
+    "shoulder_tilt_deg": 10.0
+  }
+}

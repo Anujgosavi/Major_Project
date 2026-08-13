@@ -1,0 +1,8 @@
+{
+  "model_type": "inverse",
+  "a": 15.244,
+  "b": -0.0543,
+  "norm_type": "face_width_norm",
+  "unit": "cm",
+  "fit_rmse": 1.25
+}
