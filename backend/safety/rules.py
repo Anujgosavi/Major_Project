@@ -132,6 +132,24 @@ def evaluate_frame_safety(
                 violations.append("eye_openness_warning")
                 warning = True
 
+    # Note: Gaze, Blink count, and Squint are informational / supporting only (explicitly disabled as safety triggers)
+
+    # 9. Slouch / Neck Compression Evaluation
+    if "slouch_ratio" in result and not math.isnan(result["slouch_ratio"]):
+        slouch_cfg = policy.get("slouch", {})
+        if slouch_cfg.get("enabled", True):
+            w_ratio = slouch_cfg.get("warning_ratio", 0.40)
+            ns_ratio = slouch_cfg.get("non_safe_ratio", 0.30)
+            
+            slouch = result["slouch_ratio"]
+            
+            if slouch <= ns_ratio:
+                violations.append("slouch_non_safe")
+                non_safe = True
+            elif slouch <= w_ratio:
+                violations.append("slouch_warning")
+                warning = True
+
     # Note: Gaze and Blink count are informational / supporting only (explicitly disabled as safety triggers)
 
     # Determine frame status

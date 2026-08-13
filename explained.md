@@ -261,6 +261,33 @@ No machine learning model used — pure pixel analysis.
 
 ---
 
+## 📉 Feature 12 — Slouch / Neck Compression Detector *(New)*
+
+**What it is**: Detects when a user reclines heavily into their chair/bed or slumps their upper body, causing their neck to compress vertically into their shoulders. This can occur even if pitch/yaw are normal.
+
+**How it works**: Measures the vertical distance between the nose and the center of the shoulders, and divides it by the shoulder width (to make it scale-invariant). 
+
+**Typical values**:
+- Upright posture: `> 0.60`
+- Slouching / Reclining: `< 0.55`
+
+**Safety thresholds**:
+- **Ratio ≤ 0.65** → `WARNING`
+- **Ratio ≤ 0.55** → `NON-SAFE`
+
+---
+
+## ⏰ Feature 13 — 20-20-20 Rule Reminder *(New)*
+
+**What it is**: A timed reminder to follow the widely recommended ergonomic practice: "Every 20 minutes, look at something 20 feet away for 20 seconds."
+
+**How it works**: 
+- The system tracks active session time. Every 1200 seconds (20 minutes), it triggers a gentle desktop popup reminder (without the loud alarm sound).
+- An orange banner reading **20-20-20 RULE: VISUAL BREAK** appears at the top of the video feed.
+- The banner remains visible for exactly 20 seconds to act as a visual timer, then automatically disappears.
+
+---
+
 ## 📊 Wellness Alerts Panel (Display)
 
 When any wellness condition is active, a **WELLNESS ALERTS** panel appears on the right side of the frame with colored indicator dots:
@@ -270,8 +297,9 @@ When any wellness condition is active, a **WELLNESS ALERTS** panel appears on th
 | 🟠 Dark Room / Bright Glare / Backlight | Brightness strain detected |
 | 🟡 Sustained Squinting | Squinting >20% of last 60s |
 | 🔵 Screen Fixation | Gaze still >40% of last 60s |
-| 🟠 Forward Lean / Turtle-neck | Face width 20%+ larger than session start |
+| 🟠 Forward Lean / Turtle-neck (X.XXx) | Face width ≥ 20% larger than session start |
 | 🟢 Low Blink Rate | Blink rate < 12/min |
+| 🟠 20-20-20 RULE: VISUAL BREAK | Triggers every 20 minutes (banner for 20s) |
 
 Blink rate is always shown at the bottom of the left measurement panel as `Blink rate: X.X/min`.
 
@@ -374,7 +402,7 @@ This prevents false alarms from momentary head movements, blinking, or brief sen
 | **Desktop & Audio Alerts** | `backend/app/notifier.py` | Triggers OS desktop toast notifications & Windows audio chimes when **NON-SAFE** status persists for $\ge 10$ seconds (30s cooldown prevents spam). |
 | **Session Posture Health Report** | `backend/app/reporter.py` | Computes an overall **Posture Health Score %**, tracks time distribution across SAFE / WARNING / NON-SAFE, and outputs `session_summary.txt` on exit. |
 | **Frame-by-Frame Telemetry Logger** | `backend/telemetry/logger.py` | Records every frame's metrics, final status, violation reasons, and wellness alerts to a timestamped JSONL file in `logs/`. Used as input for AI PDF reports. |
-| **Groq AI PDF Ergonomic Report** | `backend/reports/ai_insights.py`, `pdf_generator.py` | Sends aggregated session telemetry to Groq LLM (llama-3.3-70b-versatile) for personalized ergonomic insights. Renders Matplotlib charts (status timeline, metric distributions, wellness alert breakdown) and compiles everything into a downloadable ReportLab PDF at `Ergonomic_Report.pdf`. |
+| **Gemini AI PDF Ergonomic Report** | `backend/reports/ai_insights.py`, `pdf_generator.py` | Sends aggregated session telemetry to Gemini LLM (gemini-2.5-flash) for personalized ergonomic insights. Renders Matplotlib charts (status timeline, metric distributions, wellness alert breakdown) and compiles everything into a downloadable ReportLab PDF at `Ergonomic_Report.pdf`. |
 
 ---
 
@@ -420,11 +448,11 @@ generate_ai_pdf_report.py
 ### CLI Usage
 
 ```bash
-# Auto-generate PDF on exit
+# Auto-generate PDF on exit (reads GEMINI_API_KEY from .env)
 python backend/app/main.py --generate-pdf
 
-# Generate PDF from a saved telemetry log
+# Generate PDF from a saved telemetry log (reads GEMINI_API_KEY from .env)
 python generate_ai_pdf_report.py --telemetry logs/telemetry_20260813_011906.jsonl
 ```
 
-> **Requires**: `GROQ_API_KEY` environment variable or key configured in `generate_ai_pdf_report.py`.
+> **Requires**: `GEMINI_API_KEY` loaded in the `.env` file or passed via `--api-key`.

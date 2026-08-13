@@ -22,7 +22,7 @@ A continuous, real-time laptop built-in webcam system for single-user ergonomic 
 ### Reporting & Insights
 - **Session Posture Health Report**: Auto-generated on exit with posture score %, time distribution, and top violations.
 - **Frame-by-Frame Telemetry Logging**: JSONL log of every frame's metrics, status, and wellness alerts.
-- **AI-Powered PDF Ergonomic Report**: Groq LLM analysis with charts, tables, and downloadable PDF.
+- **AI-Powered PDF Ergonomic Report**: Gemini 2.5 LLM analysis with charts, tables, and downloadable PDF.
 - **Desktop & Audio Notifications**: OS toast + audio chime when NON-SAFE persists ≥ 10 seconds (30s cooldown).
 
 ---
@@ -45,6 +45,8 @@ A continuous, real-time laptop built-in webcam system for single-user ergonomic 
 | Screen Fixation | Gaze motionless > 40% of last 60 seconds |
 | Forward Lean | Face width ≥ 20% larger than session baseline |
 | Low Blink Rate | Blink rate < 12 per minute |
+| Slouch / Neck Compression | Nose-to-shoulder vertical distance ratio drops below 0.65 |
+| 20-20-20 Rule | Every 20 minutes: Look 20 feet away for 20 seconds (Timed banner + notification) |
 
 > **Note**: Wellness alerts have their own internal timing and are NOT subject to the temporal persistence engine.
 
@@ -154,17 +156,17 @@ python backend/app/main.py --headless --max-frames 100
 ```
 
 ### 4. Generate AI-Powered PDF Report
-Add `--generate-pdf` to automatically generate a Groq AI insights PDF on session exit:
+Add `--generate-pdf` to automatically generate a Gemini AI insights PDF on session exit:
 ```bash
-python backend/app/main.py --source video.mp4 --generate-pdf
+python backend/app/main.py --source video.mp4 --generate-pdf --api-key YOUR_GEMINI_KEY
 ```
 
 Or generate from a previously saved telemetry log:
 ```bash
-python generate_ai_pdf_report.py --telemetry logs/telemetry_YYYYMMDD_HHMMSS.jsonl
+python generate_ai_pdf_report.py --telemetry logs/telemetry_YYYYMMDD_HHMMSS.jsonl --api-key YOUR_GEMINI_KEY
 ```
 
-> **Note**: Set the `GROQ_API_KEY` environment variable or edit the key in `generate_ai_pdf_report.py` for AI insights.
+> **Note**: You can also set a `.env` file with `GEMINI_API_KEY` to avoid passing it via the command line.
 
 ### 5. Disable Desktop Notifications
 ```bash
@@ -178,7 +180,8 @@ python backend/app/main.py --no-notifier
 | `--source <path\|0>` | Webcam device index (default: `0`) or path to video file |
 | `--headless` | Run without GUI window |
 | `--max-frames <N>` | Stop after N frames |
-| `--generate-pdf` | Generate Groq AI + PDF report on exit |
+| `--generate-pdf` | Generate Gemini AI + PDF report on exit |
+| `--api-key` | Gemini API Key for PDF generation |
 | `--no-notifier` | Disable desktop/audio notifications |
 | `--models-dir` | Custom directory for MediaPipe `.task` files |
 | `--config-dir` | Custom directory for policy JSON files |
@@ -223,4 +226,4 @@ To run specific test modules:
 1. **Laptop Lid Angle**: Laptop lid tilt cannot be reliably determined from built-in webcam view.
 2. **Lighting Sensitivity**: Extremely low light environments may reduce MediaPipe landmark detection confidence.
 3. **Single-User Target**: System is calibrated for one seated user directly facing the screen. Multiple faces in view are not tracked simultaneously.
-4. **Groq API Key Required**: AI-powered PDF reports require a valid Groq API key.
+4. **Gemini API Key Required**: AI-powered PDF reports require a valid Gemini API key.

@@ -25,10 +25,10 @@ class BlinkDetector:
     """
 
     # Fraction of rolling baseline below which eyes are considered closed
-    CLOSE_FRAC   = 0.40   # more robust: deeper threshold
-    REOPEN_FRAC  = 0.65   # hysteresis gap prevents double-firing
+    CLOSE_FRAC   = 0.60   # Less strict threshold to catch faster, shallower blinks
+    REOPEN_FRAC  = 0.80   # hysteresis gap prevents double-firing
 
-    MIN_BLINK_MS = 40     # ms  (genuine blink must be at least this long)
+    MIN_BLINK_MS = 10     # ms  (genuine blink must be at least this long)
     MAX_BLINK_MS = 600    # ms  (longer = deliberate closure, not counted)
     MIN_INTER_MS = 80     # ms  (ignore re-close within this window after a blink)
 

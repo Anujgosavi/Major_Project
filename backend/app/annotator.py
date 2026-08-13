@@ -53,7 +53,8 @@ def annotate_frame(
     frame: np.ndarray,
     result: Dict[str, Any],
     decision: Dict[str, Any],
-    inference_ms: float = 0.0
+    inference_ms: float = 0.0,
+    rule_20_20_20_active: bool = False
 ) -> np.ndarray:
     """
     Overlay status banner, measurements, inference time, and active violation causes on a BGR frame.
@@ -105,6 +106,7 @@ def annotate_frame(
     pitch = _safe_val(result, "head_pitch_deg")
     yaw = _safe_val(result, "head_yaw_deg")
     shoulder = _safe_val(result, "shoulder_tilt_deg")
+    slouch = _safe_val(result, "slouch_ratio")
     eye_open = _safe_val(result, "mean_eye_open_ratio")
     blink_count = result.get("blink_count", 0)
 
@@ -125,7 +127,8 @@ def annotate_frame(
         _fmt("Pitch",   pitch,    "deg", warn_key="head_pitch_warning",     danger_key="head_pitch_non_safe"),
         _fmt("Yaw",     yaw,      "deg", warn_key="head_yaw_warning",       danger_key="head_yaw_non_safe"),
         _fmt("Shoulder",shoulder, "deg", warn_key="shoulder_tilt_warning",  danger_key="shoulder_tilt_non_safe"),
-        _fmt("Eye Open",eye_open, "",    ".3f"),
+        _fmt("Slouch",  slouch,   "",    warn_key="slouch_warning",         danger_key="slouch_non_safe", fmt=".2f"),
+        _fmt("Eye Open",eye_open, "",    fmt=".3f"),
         ("Blinks", str(int(blink_count)), (200, 200, 200)),
     ]
 
@@ -140,6 +143,20 @@ def annotate_frame(
     # ----------------------------------------------------------------
     # 4. Inference Time
     # ----------------------------------------------------------------
+    # 7. Draw 20-20-20 Rule Reminder Banner
+    # ----------------------------------------------------------------
+    if rule_20_20_20_active:
+        msg1 = "20-20-20 RULE: VISUAL BREAK"
+        msg2 = "Look at something 20 feet away!"
+        
+        cv2.rectangle(output, (0, banner_h), (w, banner_h + 60), (0, 140, 255), -1)
+        
+        (tw1, th1), _ = cv2.getTextSize(msg1, cv2.FONT_HERSHEY_DUPLEX, 0.7, 2)
+        cv2.putText(output, msg1, (w//2 - tw1//2, banner_h + 25), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
+        
+        (tw2, th2), _ = cv2.getTextSize(msg2, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
+        cv2.putText(output, msg2, (w//2 - tw2//2, banner_h + 50), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1, cv2.LINE_AA)
+
     inf_text = f"Inference: {inference_ms:.1f} ms"
     cv2.putText(output, inf_text, (14, y + 6), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (120, 220, 120), 1, cv2.LINE_AA)
 

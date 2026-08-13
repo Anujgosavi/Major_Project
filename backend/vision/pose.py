@@ -53,7 +53,15 @@ def process_pose_landmarks(pose_result) -> Dict[str, Any]:
     res["shoulder_alignment_ratio"] = alignment_ratio
 
     # Head offset relative to shoulder center
-    res["head_offset_x"] = float(nose_xy[0] - shoulder_center[0])
-    res["head_offset_y"] = float(nose_xy[1] - shoulder_center[1])
+    head_offset_x = float(nose_xy[0] - shoulder_center[0])
+    head_offset_y = float(nose_xy[1] - shoulder_center[1])
+    res["head_offset_x"] = head_offset_x
+    res["head_offset_y"] = head_offset_y
+    
+    # Slouch / Neck Compression Ratio
+    # Nose is normally above shoulders (so head_offset_y is negative).
+    # We take the absolute value so it's a positive distance.
+    slouch_ratio = float(abs(head_offset_y) / (shoulder_width + 1e-8))
+    res["slouch_ratio"] = slouch_ratio
 
     return res

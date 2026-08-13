@@ -37,6 +37,11 @@
     "warning_ratio": 0.25,
     "non_safe_ratio": 0.15
   },
+  "slouch": {
+    "enabled": true,
+    "warning_ratio": 0.65,
+    "non_safe_ratio": 0.55
+  },
   "temporal": {
     "warning_seconds": 2.0,
     "non_safe_seconds": 5.0

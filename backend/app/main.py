@@ -31,7 +31,8 @@ def run_continuous_monitor(
     headless=False,
     max_frames=None,
     enable_notifier=True,
-    generate_pdf=False
+    generate_pdf=False,
+    api_key=None
 ):
     print("=" * 65)
     print("  AI Ergonomics & Digital-Wellness System")
@@ -62,8 +63,15 @@ def run_continuous_monitor(
         pipeline.close()
         return
 
-    frame_count = 0
+    # Setup timing and metrics
     start_time = time.time()
+    last_fps_time = start_time
+    frame_count = 0
+    fps_val = 0.0
+
+    # 20-20-20 Rule Tracking
+    last_break_time = start_time
+    rule_20_active = False
 
     # Get camera frame dimensions for window setup
     cam_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -110,8 +118,29 @@ def run_continuous_monitor(
                     timestamp=current_time
                 )
 
-            # Annotate Frame (pass inference time)
-            annotated_frame = annotate_frame(frame, result, decision, inference_ms=inference_ms)
+            # -------------------------------------------------------------
+            # 20-20-20 Rule Logic
+            # -------------------------------------------------------------
+            # 20 minutes = 1200 seconds
+            time_since_break = current_time - last_break_time
+            if time_since_break >= 1200.0:
+                if not rule_20_active:
+                    rule_20_active = True
+                    notifier.notify_20_20_20(timestamp=current_time)
+            
+            # Active for exactly 20 seconds
+            if rule_20_active and (time_since_break >= 1220.0):
+                rule_20_active = False
+                last_break_time = current_time  # Reset the 20-minute timer
+
+            # Annotate Frame (pass inference time and 20-20-20 flag)
+            annotated_frame = annotate_frame(
+                frame, 
+                result, 
+                decision, 
+                inference_ms=inference_ms,
+                rule_20_20_20_active=rule_20_active
+            )
 
             # Terminal log every 30 frames
             if frame_count % 30 == 0:
@@ -167,6 +196,8 @@ def run_continuous_monitor(
             try:
                 import subprocess
                 cmd = [sys.executable, str(PROJECT_ROOT / "generate_ai_pdf_report.py"), "--telemetry", str(telemetry_logger.log_file)]
+                if api_key:
+                    cmd.extend(["--api-key", api_key])
                 subprocess.run(cmd, check=True)
             except Exception as e:
                 print(f"[!] Could not generate PDF report: {e}")
@@ -181,7 +212,8 @@ def main():
     parser.add_argument("--headless", action="store_true", help="Run without GUI window display")
     parser.add_argument("--max-frames", type=int, default=None, help="Stop after N frames (for testing)")
     parser.add_argument("--no-notifier", action="store_true", help="Disable audio/desktop popup alerts")
-    parser.add_argument("--generate-pdf", action="store_true", help="Generate Groq AI & PDF Ergonomic Report on exit")
+    parser.add_argument("--generate-pdf", action="store_true", help="Generate Gemini AI & PDF Ergonomic Report on exit")
+    parser.add_argument("--api-key", default=None, help="Gemini API Key for PDF report generation")
     args = parser.parse_args()
 
     try:
@@ -193,7 +225,8 @@ def main():
             headless=args.headless,
             max_frames=args.max_frames,
             enable_notifier=not args.no_notifier,
-            generate_pdf=args.generate_pdf
+            generate_pdf=args.generate_pdf,
+            api_key=args.api_key
         )
     except KeyboardInterrupt:
         print("\n[+] Session ended by user via keyboard interrupt.")

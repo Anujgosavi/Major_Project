@@ -7,3 +7,4 @@ reportlab>=4.0.0
 matplotlib>=3.7.0
 google-generativeai>=0.4.0
 plyer>=2.1.0
+python-dotenv>=1.0.0

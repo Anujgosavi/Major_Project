@@ -73,3 +73,33 @@ class PostureNotifier:
                 )
             except Exception:
                 pass
+
+    def notify_20_20_20(self, timestamp: float) -> None:
+        """
+        Trigger a gentle desktop popup reminding the user of the 20-20-20 rule.
+        Does not play the harsh alarm sound.
+        """
+        if not self.enabled or not sys.platform.startswith("win"):
+            return
+            
+        title = "Time for a Visual Break!"
+        msg = "20-20-20 Rule: Look at something 20 feet away for 20 seconds."
+        print(f"\n[NOTIF] {title}: {msg}\n")
+        
+        try:
+            ps_script = f'''
+            [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+            $objNotifyIcon = New-Object System.Windows.Forms.NotifyIcon
+            $objNotifyIcon.Icon = [System.Drawing.SystemIcons]::Information
+            $objNotifyIcon.BalloonTipIcon = "Info"
+            $objNotifyIcon.BalloonTipTitle = "{title}"
+            $objNotifyIcon.BalloonTipText = "{msg}"
+            $objNotifyIcon.Visible = $True
+            $objNotifyIcon.ShowBalloonTip(10000)
+            '''
+            subprocess.Popen(
+                ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps_script],
+                creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0
+            )
+        except Exception:
+            pass
