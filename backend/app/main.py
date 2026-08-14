@@ -56,7 +56,11 @@ def run_continuous_monitor(
 
     # Open Video Capture Stream
     print(f"[..] Opening video stream source: {source_input}")
-    cap = cv2.VideoCapture(source_input)
+    
+    if isinstance(source_input, int) and sys.platform.startswith('win'):
+        cap = cv2.VideoCapture(source_input, cv2.CAP_DSHOW)
+    else:
+        cap = cv2.VideoCapture(source_input)
 
     if not cap.isOpened():
         print(f"[!] Error: Unable to open video source {source_input}")
@@ -118,20 +122,25 @@ def run_continuous_monitor(
                     timestamp=current_time
                 )
 
+            # Brightness notification
+            b_strain = result.get("brightness_strain", "ok")
+            if b_strain != "ok":
+                notifier.notify_brightness(b_strain, timestamp=current_time)
+
             # -------------------------------------------------------------
             # 20-20-20 Rule Logic
             # -------------------------------------------------------------
-            # 20 minutes = 1200 seconds
+            # 1 minute = 60 seconds
             time_since_break = current_time - last_break_time
-            if time_since_break >= 1200.0:
+            if time_since_break >= 60.0:
                 if not rule_20_active:
                     rule_20_active = True
                     notifier.notify_20_20_20(timestamp=current_time)
             
             # Active for exactly 20 seconds
-            if rule_20_active and (time_since_break >= 1220.0):
+            if rule_20_active and (time_since_break >= 80.0):
                 rule_20_active = False
-                last_break_time = current_time  # Reset the 20-minute timer
+                last_break_time = current_time  # Reset the 1-minute timer
 
             # Annotate Frame (pass inference time and 20-20-20 flag)
             annotated_frame = annotate_frame(
