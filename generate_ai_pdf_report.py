@@ -70,6 +70,10 @@ def compute_summary_stats(records: List[Dict[str, Any]]) -> Dict[str, Any]:
 
     for r in records:
         for reas in r.get("reasons", []):
+            if reas == "eye_openness_non_safe":
+                reas = "eye_openness_warning"
+            elif reas == "sustained_squint_non_safe":
+                continue
             reason_counts[reas] = reason_counts.get(reas, 0) + 1
 
         if r.get("brightness_strain") and r.get("brightness_strain") != "ok":

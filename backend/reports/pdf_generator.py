@@ -409,6 +409,15 @@ class ErgonomicPDFReportGenerator:
         story.append(Paragraph("4. Workstation & Environment Optimization Guidelines", h2_style))
         story.extend(self._parse_markdown_text(ai_insights.get("workstation_optimization", ""), body_style, bullet_style))
 
+        # Hardcoded 20-20-20 Rule Callout
+        story.append(Spacer(1, 15))
+        story.append(Paragraph("Eye Wellness: The 20-20-20 Rule", h2_style))
+        story.append(Paragraph(
+            "<b>To prevent digital eye strain, follow this universally recommended ergonomic practice:</b><br/>"
+            "Every 20 minutes of screen time, take a visual break by looking at an object at least 20 feet away for a minimum of 20 seconds.",
+            body_style
+        ))
+
         # Build PDF using NumberedCanvas
         doc.build(story, canvasmaker=NumberedCanvas)
         print(f"\n[+] PDF Ergonomic Report generated successfully at: {pdf_path}")

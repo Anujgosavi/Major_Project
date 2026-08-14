@@ -73,9 +73,10 @@ def run_continuous_monitor(
     frame_count = 0
     fps_val = 0.0
 
-    # 20-20-20 Rule Tracking
+    # 20-20-20 Rule & Water Tracking
     last_break_time = start_time
     rule_20_active = False
+    last_water_time = start_time
 
     # Get camera frame dimensions for window setup
     cam_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -142,13 +143,25 @@ def run_continuous_monitor(
                 rule_20_active = False
                 last_break_time = current_time  # Reset the 1-minute timer
 
-            # Annotate Frame (pass inference time and 20-20-20 flag)
+            # Annotate Frame (pass inference time and 20-20-20 flag/countdown)
+            rem_sec = max(0, int(1200.0 - time_since_break))
+            countdown_str = f"{rem_sec//60:02d}:{rem_sec%60:02d}"
+            
+            # -------------------------------------------------------------
+            # Water Reminder Logic
+            # -------------------------------------------------------------
+            time_since_water = current_time - last_water_time
+            if time_since_water >= 2700.0:  # 45 minutes
+                notifier.notify_water()
+                last_water_time = current_time
+
             annotated_frame = annotate_frame(
                 frame, 
                 result, 
                 decision, 
                 inference_ms=inference_ms,
-                rule_20_20_20_active=rule_20_active
+                rule_20_20_20_active=rule_20_active,
+                countdown_str=countdown_str
             )
 
             # Terminal log every 30 frames

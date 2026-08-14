@@ -125,10 +125,7 @@ def evaluate_frame_safety(
 
             openness = result["mean_eye_open_ratio"]
 
-            if openness <= ns_ratio:
-                violations.append("eye_openness_non_safe")
-                non_safe = True
-            elif openness <= w_ratio:
+            if openness <= w_ratio:
                 violations.append("eye_openness_warning")
                 warning = True
 

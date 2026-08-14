@@ -149,3 +149,33 @@ class PostureNotifier:
             )
         except Exception:
             pass
+
+    def notify_water(self) -> None:
+        """
+        Trigger a gentle desktop popup reminding the user to drink water.
+        """
+        if not self.enabled or not sys.platform.startswith("win"):
+            return
+            
+        title = "Hydration Check!"
+        msg = "Time to drink a glass of water to stay hydrated and focused."
+        print(f"\n[NOTIF] {title}: {msg}\n")
+        
+        try:
+            ps_script = f'''
+            [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+            $objNotifyIcon = New-Object System.Windows.Forms.NotifyIcon
+            $objNotifyIcon.Icon = [System.Drawing.SystemIcons]::Information
+            $objNotifyIcon.BalloonTipIcon = "Info"
+            $objNotifyIcon.BalloonTipTitle = "{title}"
+            $objNotifyIcon.BalloonTipText = "{msg}"
+            $objNotifyIcon.Visible = $True
+            $objNotifyIcon.ShowBalloonTip(8000)
+            '''
+            import subprocess
+            subprocess.Popen(
+                ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps_script],
+                creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0
+            )
+        except Exception:
+            pass

@@ -54,7 +54,8 @@ def annotate_frame(
     result: Dict[str, Any],
     decision: Dict[str, Any],
     inference_ms: float = 0.0,
-    rule_20_20_20_active: bool = False
+    rule_20_20_20_active: bool = False,
+    countdown_str: str = "20:00"
 ) -> np.ndarray:
     """
     Overlay status banner, measurements, inference time, and active violation causes on a BGR frame.
@@ -159,6 +160,15 @@ def annotate_frame(
 
     inf_text = f"Inference: {inference_ms:.1f} ms"
     cv2.putText(output, inf_text, (14, y + 6), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (120, 220, 120), 1, cv2.LINE_AA)
+    
+    cv2.putText(output, "Model: MediaPipe", (14, y + 26), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (80, 80, 80), 1, cv2.LINE_AA)
+    
+    br_text = f"Blink rate: {result.get('blink_rate_per_min', 0.0):.1f}/min"
+    cv2.putText(output, br_text, (14, y + 46), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (180, 180, 180), 1, cv2.LINE_AA)
+
+    # Display Next Break Countdown
+    cd_text = f"Next Break: {countdown_str}"
+    cv2.putText(output, cd_text, (14, y + 66), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (0, 200, 255), 1, cv2.LINE_AA)
 
     # ----------------------------------------------------------------
     # 5. Models used (informational)
