@@ -103,3 +103,49 @@ class PostureNotifier:
             )
         except Exception:
             pass
+
+    def notify_brightness(self, strain_type: str, timestamp: float) -> None:
+        """
+        Trigger a desktop popup for brightness/lighting strain.
+        """
+        if not self.enabled or not sys.platform.startswith("win"):
+            return
+            
+        if not hasattr(self, '_last_bright_time'):
+            self._last_bright_time = None
+            
+        # 30-second cooldown specifically for brightness
+        if self._last_bright_time is not None and (timestamp - self._last_bright_time) < self.cooldown_sec:
+            return
+            
+        self._last_bright_time = timestamp
+        
+        title = "Lighting Alert"
+        if strain_type == "dark_room":
+            msg = "Room is too dark. Please turn on some lights to avoid eye strain."
+        elif strain_type == "bright_glare":
+            msg = "Screen/room is too bright or overexposed."
+        elif strain_type == "backlight_glare":
+            msg = "Strong backlight detected behind you. Adjust your lighting."
+        else:
+            msg = "Poor lighting conditions detected."
+            
+        print(f"\n[NOTIF] {title}: {msg}\n")
+        
+        try:
+            ps_script = f'''
+            [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+            $objNotifyIcon = New-Object System.Windows.Forms.NotifyIcon
+            $objNotifyIcon.Icon = [System.Drawing.SystemIcons]::Warning
+            $objNotifyIcon.BalloonTipIcon = "Warning"
+            $objNotifyIcon.BalloonTipTitle = "{title}"
+            $objNotifyIcon.BalloonTipText = "{msg}"
+            $objNotifyIcon.Visible = $True
+            $objNotifyIcon.ShowBalloonTip(4000)
+            '''
+            subprocess.Popen(
+                ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps_script],
+                creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0
+            )
+        except Exception:
+            pass
