@@ -54,6 +54,13 @@ def run_continuous_monitor(
     telemetry_logger = TelemetryLogger()
     print("[+] Vision Pipeline, Safety Engine, Notifier, Reporter & Telemetry Logger Initialized.")
 
+    # Start the MJPEG Streaming Server for the React Frontend
+    try:
+        from backend.app.mjpeg_server import start_server
+        start_server(port=5000)
+    except Exception as e:
+        print(f"[!] Warning: Could not start MJPEG server: {e}")
+
     # Open Video Capture Stream
     print(f"[..] Opening video stream source: {source_input}")
     
@@ -131,17 +138,17 @@ def run_continuous_monitor(
             # -------------------------------------------------------------
             # 20-20-20 Rule Logic
             # -------------------------------------------------------------
-            # 1 minute = 60 seconds
+            # 20 minutes = 1200 seconds
             time_since_break = current_time - last_break_time
-            if time_since_break >= 60.0:
+            if time_since_break >= 1200.0:
                 if not rule_20_active:
                     rule_20_active = True
                     notifier.notify_20_20_20(timestamp=current_time)
             
             # Active for exactly 20 seconds
-            if rule_20_active and (time_since_break >= 80.0):
+            if rule_20_active and (time_since_break >= 1220.0):
                 rule_20_active = False
-                last_break_time = current_time  # Reset the 1-minute timer
+                last_break_time = current_time  # Reset the 20-minute timer
 
             # Annotate Frame (pass inference time and 20-20-20 flag/countdown)
             rem_sec = max(0, int(1200.0 - time_since_break))
@@ -163,6 +170,9 @@ def run_continuous_monitor(
                 rule_20_20_20_active=rule_20_active,
                 countdown_str=countdown_str
             )
+            
+            from backend.app.mjpeg_server import update_frame
+            update_frame(annotated_frame)
 
             # Terminal log every 30 frames
             if frame_count % 30 == 0:

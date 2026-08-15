@@ -32,3 +32,14 @@ logs/
 Ergonomic_Report.pdf
 session_summary.txt
 recorded_video_analysis.txt
+
+# Secrets & Environment
+.env
+*.env
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/build/
+.npm
+

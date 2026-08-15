@@ -55,7 +55,8 @@ def annotate_frame(
     decision: Dict[str, Any],
     inference_ms: float = 0.0,
     rule_20_20_20_active: bool = False,
-    countdown_str: str = "20:00"
+    countdown_str: str = "20:00",
+    show_measurements: bool = False
 ) -> np.ndarray:
     """
     Overlay status banner, measurements, inference time, and active violation causes on a BGR frame.
@@ -93,12 +94,13 @@ def annotate_frame(
         cv2.putText(output, badge, (w - 200, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (220, 220, 220), 1, cv2.LINE_AA)
 
     # ----------------------------------------------------------------
-    # 2. Semi-transparent side panel background for readability
+    # 2. Semi-transparent side panel background (Conditional)
     # ----------------------------------------------------------------
-    panel_w = 280
-    overlay_panel = output.copy()
-    cv2.rectangle(overlay_panel, (0, banner_h), (panel_w, h), (20, 20, 20), -1)
-    cv2.addWeighted(overlay_panel, 0.55, output, 0.45, 0, output)
+    if show_measurements:
+        panel_w = 280
+        overlay_panel = output.copy()
+        cv2.rectangle(overlay_panel, (0, banner_h), (panel_w, h), (20, 20, 20), -1)
+        cv2.addWeighted(overlay_panel, 0.55, output, 0.45, 0, output)
 
     # ----------------------------------------------------------------
     # 3. Measurements
@@ -123,23 +125,24 @@ def annotate_frame(
             clr = (255, 255, 255) # White
         return label, val_str, clr
 
-    entries = [
-        _fmt("Dist",    dist,     "cm",  warn_key="screen_distance_low",   danger_key="screen_too_close"),
-        _fmt("Pitch",   pitch,    "deg", warn_key="head_pitch_warning",     danger_key="head_pitch_non_safe"),
-        _fmt("Yaw",     yaw,      "deg", warn_key="head_yaw_warning",       danger_key="head_yaw_non_safe"),
-        _fmt("Shoulder",shoulder, "deg", warn_key="shoulder_tilt_warning",  danger_key="shoulder_tilt_non_safe"),
-        _fmt("Slouch",  slouch,   "",    warn_key="slouch_warning",         danger_key="slouch_non_safe", fmt=".2f"),
-        _fmt("Eye Open",eye_open, "",    fmt=".3f"),
-        ("Blinks", str(int(blink_count)), (200, 200, 200)),
-    ]
+    if show_measurements:
+        entries = [
+            _fmt("Dist",    dist,     "cm",  warn_key="screen_distance_low",   danger_key="screen_too_close"),
+            _fmt("Pitch",   pitch,    "deg", warn_key="head_pitch_warning",     danger_key="head_pitch_non_safe"),
+            _fmt("Yaw",     yaw,      "deg", warn_key="head_yaw_warning",       danger_key="head_yaw_non_safe"),
+            _fmt("Shoulder",shoulder, "deg", warn_key="shoulder_tilt_warning",  danger_key="shoulder_tilt_non_safe"),
+            _fmt("Slouch",  slouch,   "",    warn_key="slouch_warning",         danger_key="slouch_non_safe", fmt=".2f"),
+            _fmt("Eye Open",eye_open, "",    fmt=".3f"),
+            ("Blinks", str(int(blink_count)), (200, 200, 200)),
+        ]
 
-    y = banner_h + 28
-    for label, val_str, clr in entries:
-        # Label in dimmer color
-        cv2.putText(output, f"{label}:", (14, y), cv2.FONT_HERSHEY_SIMPLEX, 0.58, (160, 160, 160), 1, cv2.LINE_AA)
-        # Value in status-appropriate color
-        cv2.putText(output, val_str, (130, y), cv2.FONT_HERSHEY_SIMPLEX, 0.60, clr, 2, cv2.LINE_AA)
-        y += 32
+        y = banner_h + 28
+        for label, val_str, clr in entries:
+            # Label in dimmer color
+            cv2.putText(output, f"{label}:", (14, y), cv2.FONT_HERSHEY_SIMPLEX, 0.58, (160, 160, 160), 1, cv2.LINE_AA)
+            # Value in status-appropriate color
+            cv2.putText(output, val_str, (130, y), cv2.FONT_HERSHEY_SIMPLEX, 0.60, clr, 2, cv2.LINE_AA)
+            y += 32
 
     # ----------------------------------------------------------------
     # 4. Inference Time
@@ -158,25 +161,27 @@ def annotate_frame(
         (tw2, th2), _ = cv2.getTextSize(msg2, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
         cv2.putText(output, msg2, (w//2 - tw2//2, banner_h + 50), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1, cv2.LINE_AA)
 
-    inf_text = f"Inference: {inference_ms:.1f} ms"
-    cv2.putText(output, inf_text, (14, y + 6), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (120, 220, 120), 1, cv2.LINE_AA)
+    # ----------------------------------------------------------------
+    # 4. Diagnostics & Timers (Conditional)
+    # ----------------------------------------------------------------
+    if show_measurements:
+        # Ensure y is initialized if entries list was empty
+        if 'y' not in locals():
+            y = banner_h + 28
+            
+        inf_text = f"Inference: {inference_ms:.1f} ms"
+        cv2.putText(output, inf_text, (14, y + 6), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (120, 220, 120), 1, cv2.LINE_AA)
+        
+        cv2.putText(output, "Model: MediaPipe", (14, y + 26), cv2.FONT_HERSHEY_SIMPLEX, 0.48, (120, 120, 120), 1, cv2.LINE_AA)
+        
+        br_text = f"Blink rate: {result.get('blink_rate_per_min', 0.0):.1f}/min"
+        cv2.putText(output, br_text, (14, y + 46), cv2.FONT_HERSHEY_SIMPLEX, 0.48, (180, 180, 180), 1, cv2.LINE_AA)
     
-    cv2.putText(output, "Model: MediaPipe", (14, y + 26), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (80, 80, 80), 1, cv2.LINE_AA)
-    
-    br_text = f"Blink rate: {result.get('blink_rate_per_min', 0.0):.1f}/min"
-    cv2.putText(output, br_text, (14, y + 46), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (180, 180, 180), 1, cv2.LINE_AA)
-
-    # Display Next Break Countdown
-    cd_text = f"Next Break: {countdown_str}"
-    cv2.putText(output, cd_text, (14, y + 66), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (0, 200, 255), 1, cv2.LINE_AA)
+        cd_text = f"Next Break: {countdown_str}"
+        cv2.putText(output, cd_text, (14, y + 66), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (0, 200, 255), 1, cv2.LINE_AA)
 
     # ----------------------------------------------------------------
-    # 5. Models used (informational)
-    # ----------------------------------------------------------------
-    cv2.putText(output, "Model: MediaPipe", (14, y + 28), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (90, 90, 90), 1, cv2.LINE_AA)
-
-    # ----------------------------------------------------------------
-    # 6. Wellness Indicators Panel
+    # 5. Wellness Indicators Panel
     # ----------------------------------------------------------------
     wellness_items = []
 
@@ -221,9 +226,7 @@ def annotate_frame(
             cv2.circle(output, (panel_x, wy - 5), 5, dot_color, -1)
             cv2.putText(output, label, (panel_x + 12, wy), cv2.FONT_HERSHEY_SIMPLEX, 0.50, (230, 230, 230), 1, cv2.LINE_AA)
 
-    # Blink rate (always shown in measurements area)
-    blink_rate_text = f"Blink rate: {blink_rate:.1f}/min"
-    cv2.putText(output, blink_rate_text, (14, y + 50), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (160, 160, 160), 1, cv2.LINE_AA)
+
 
     # ----------------------------------------------------------------
     # 6. Active Causes bottom bar (only when not SAFE)
