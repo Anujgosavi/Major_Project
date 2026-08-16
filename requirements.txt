@@ -10,3 +10,5 @@ plyer>=2.1.0
 python-dotenv>=1.0.0
 flask>=2.2.0
 flask-cors>=3.0.0
+aiortc>=1.5.0
+av>=11.0.0

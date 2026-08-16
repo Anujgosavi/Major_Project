@@ -10,8 +10,13 @@ import math
 from pathlib import Path
 
 import cv2
+import numpy as np
 from flask import Flask, Response, jsonify, request
 from flask_cors import CORS
+import asyncio
+import uuid
+from aiortc import RTCPeerConnection, RTCSessionDescription, VideoStreamTrack
+from av import VideoFrame
 
 def _safe_float(val, default=0.0, ndigits=1):
     try:
@@ -73,6 +78,37 @@ class MonitorState:
 
 state = MonitorState()
 
+# ---------------------------------------------------------------------------
+# WebRTC Loop and Track
+# ---------------------------------------------------------------------------
+webrtc_loop = asyncio.new_event_loop()
+def _run_webrtc_loop(loop):
+    asyncio.set_event_loop(loop)
+    loop.run_forever()
+threading.Thread(target=_run_webrtc_loop, args=(webrtc_loop,), daemon=True).start()
+
+pcs = set()
+
+class MonitorVideoTrack(VideoStreamTrack):
+    def __init__(self):
+        super().__init__()
+
+    async def recv(self):
+        pts, time_base = await self.next_timestamp()
+
+        frame = None
+        while True:
+            with state.frame_lock:
+                if state.latest_frame is not None:
+                    frame = state.latest_frame.copy()
+                    break
+            await asyncio.sleep(0.05)
+
+        # aiortc handles BGR conversion
+        video_frame = VideoFrame.from_ndarray(frame, format="bgr24")
+        video_frame.pts = pts
+        video_frame.time_base = time_base
+        return video_frame
 
 def _monitor_loop():
     """Background thread that runs the vision pipeline."""
@@ -320,6 +356,40 @@ def video_feed():
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
+@app.route('/api/webrtc/offer', methods=['POST'])
+def webrtc_offer():
+    try:
+        params = request.json
+        offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"])
+
+        async def process_offer():
+            pc = RTCPeerConnection()
+            pc_id = "PeerConnection(%s)" % uuid.uuid4()
+            pcs.add(pc)
+
+            @pc.on("connectionstatechange")
+            async def on_connectionstatechange():
+                print(f"[{pc_id}] Connection state is {pc.connectionState}")
+                if pc.connectionState == "failed" or pc.connectionState == "closed":
+                    pcs.discard(pc)
+
+            # Attach the video track
+            video_track = MonitorVideoTrack()
+            pc.addTrack(video_track)
+
+            await pc.setRemoteDescription(offer)
+            answer = await pc.createAnswer()
+            await pc.setLocalDescription(answer)
+            return {"sdp": pc.localDescription.sdp, "type": pc.localDescription.type}
+
+        future = asyncio.run_coroutine_threadsafe(process_offer(), webrtc_loop)
+        answer = future.result(timeout=10)
+        return jsonify(answer)
+    except Exception as e:
+        import traceback
+        return jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500
+
+
 # ---------------------------------------------------------------------------
 # Entry Point
 # ---------------------------------------------------------------------------
@@ -332,5 +402,6 @@ if __name__ == '__main__':
     print("    POST /api/dismiss_alert  — Dismiss active warnings")
     print("    GET  /api/status         — Get current session status")
     print("    GET  /video_feed         — MJPEG live stream")
+    print("    POST /api/webrtc/offer   — WebRTC SDP Offer")
     print("=" * 65)
     app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)

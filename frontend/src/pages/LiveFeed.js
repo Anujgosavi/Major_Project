@@ -58,6 +58,57 @@ export default function LiveFeed() {
   const pollRef = useRef(null);
   const seenAlertsRef = useRef(new Set());
   const videoRef = useRef(null);
+  const pcRef = useRef(null);
+
+  // WebRTC Cleanup
+  useEffect(() => {
+    if (status !== 'running') {
+      if (pcRef.current) {
+        pcRef.current.close();
+        pcRef.current = null;
+      }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+    }
+  }, [status]);
+
+  const startWebRTC = async () => {
+    try {
+      const pc = new RTCPeerConnection();
+      pcRef.current = pc;
+
+      pc.ontrack = (event) => {
+        if (videoRef.current && event.track.kind === 'video') {
+          if (event.streams && event.streams[0]) {
+            videoRef.current.srcObject = event.streams[0];
+          } else {
+            videoRef.current.srcObject = new MediaStream([event.track]);
+          }
+        }
+      };
+
+      pc.addTransceiver('video', { direction: 'recvonly' });
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      const response = await fetch(`${API_BASE}/api/webrtc/offer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sdp: pc.localDescription.sdp,
+          type: pc.localDescription.type
+        })
+      });
+      
+      const answer = await response.json();
+      await pc.setRemoteDescription(answer);
+
+    } catch (err) {
+      console.error('Failed to start WebRTC:', err);
+    }
+  };
 
   // Poll backend status every 500ms
   useEffect(() => {
@@ -104,6 +155,19 @@ export default function LiveFeed() {
       setSessionTime(0);
     }
     return () => clearInterval(timer);
+  }, [status]);
+
+  // Ensure WebRTC is connected when running
+  useEffect(() => {
+    if (status === 'running' && !pcRef.current) {
+      // Small delay to allow camera to initialize if just starting
+      const timer = setTimeout(() => {
+        if (!pcRef.current) {
+          startWebRTC();
+        }
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
   }, [status]);
 
   const handleStart = async () => {
@@ -311,10 +375,11 @@ export default function LiveFeed() {
           <div className="video-wrapper">
             {status === 'running' ? (
               <div className="video-feed">
-                <img
+                <video
                   ref={videoRef}
-                  src={`${API_BASE}/video_feed`}
-                  alt="Live Ergonomic Stream"
+                  autoPlay
+                  playsInline
+                  muted
                   className="video-stream"
                 />
                 
