@@ -167,5 +167,5 @@ Annotator & State Sync
 ## 📊 Session Telemetry & AI Report Generation
 
 1. **Telemetry Logging**: Every processed frame writes a JSONL entry to `logs/telemetry_YYYYMMDD_HHMMSS.jsonl`.
-2. **AI Analysis**: `generate_ai_pdf_report.py` aggregates session metrics and queries Gemini/Groq LLMs for custom ergonomic recommendations.
+2. **AI Analysis**: `backend/generate_ai_pdf_report.py` aggregates session metrics and queries Gemini/Groq LLMs for custom ergonomic recommendations.
 3. **PDF Generation**: Renders Matplotlib trend charts and formats a complete ReportLab PDF summary (`Ergonomic_Report.pdf`).

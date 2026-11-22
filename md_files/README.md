@@ -39,7 +39,8 @@ A comprehensive, real-time AI-powered ergonomic posture, screen distance, and di
                  ▼
 ┌──────────────────────────────────────────┐
 │      Session & Telemetry Reports         │
-│  • JSONL Frame Telemetry (logs/)         │
+│  • Local JSONL Frame Telemetry (logs/)   │
+│  • MongoDB 1-second Telemetry Rollups    │
 │  • Gemini / Groq AI Insights             │
 │  • ReportLab Multi-Page PDF Report       │
 └──────────────────────────────────────────┘
@@ -75,6 +76,14 @@ A comprehensive, real-time AI-powered ergonomic posture, screen distance, and di
 - **Dashboard Overview**: Score trends, weekly posture distributions, session logs, and system summary cards.
 - **Session Reports**: Historical analytics with filtering, score indicators, and downloadable PDF summaries.
 - **Dark Glassmorphism Theme**: Custom modular CSS with smooth animations and responsive mobile layouts.
+
+### Telemetry Storage Strategy
+- Every processed frame is kept in the local session JSONL file while a session is
+  running, so the PDF generator can render detailed time-series charts.
+- MongoDB stores one asynchronous aggregate document per second, including sample
+  count, averages, dominant status, and reason counts. This keeps session history
+  and analytics useful without storing a document for every camera frame.
+- The generated PDF is stored separately in MongoDB GridFS after report generation.
 
 ---
 
@@ -117,7 +126,7 @@ Major_Project/
 │   │   ├── temporal.py              # Temporal persistence state machine
 │   │   └── engine.py                # SafetyEngine wrapper
 │   ├── telemetry/
-│   │   └── logger.py                # JSONL frame-by-frame telemetry logger
+│   │   └── logger.py                # Local frame log + compact MongoDB rollups
 │   └── reports/
 │       ├── ai_insights.py           # Gemini / Groq LLM API insights
 │       └── pdf_generator.py         # ReportLab multi-page PDF generator
@@ -142,10 +151,12 @@ Major_Project/
 ├── scripts/
 │   └── download_models.py           # Automated model downloader
 ├── tests/                           # Pytest automated test suite (22 tests)
-├── generate_ai_pdf_report.py        # Standalone AI PDF report generator
+├── backend/
+│   └── generate_ai_pdf_report.py    # Standalone AI PDF report generator
 ├── requirements.txt                 # Backend Python dependencies (includes aiortc, av, flask)
-├── explained.md                     # Deep-dive technical documentation
-└── README.md                        # Main project documentation
+└── md_files/                        # Centralized Markdown and LaTeX documentation
+    ├── README.md                    # Main project documentation
+    └── Project_Report.tex           # Detailed LaTeX project report
 ```
 
 ---
