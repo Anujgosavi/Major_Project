@@ -97,6 +97,8 @@ def get_session_telemetry(session_id):
     if not records:
         return jsonify({"telemetry": [], "total_frames": 0}), 200
 
+    total_frames = sum(r.get("sample_count", 1) for r in records)
+
     # Downsample if exceeding max_points
     if len(records) > max_points:
         step = len(records) / max_points
@@ -106,7 +108,7 @@ def get_session_telemetry(session_id):
 
     return jsonify({
         "telemetry": downsampled,
-        "total_frames": len(records),
+        "total_frames": total_frames,
         "sampled_frames": len(downsampled)
     }), 200
 
@@ -269,18 +271,35 @@ def get_analytics_summary():
     session_ids = [str(s["_id"]) for s in sessions]
     recent_telemetry = list(t_col.find(
         {"session_id": {"$in": session_ids}, "user_id": g.user_id},
-        {"estimated_distance_cm": 1, "blink_rate_per_min": 1, "final_status": 1}
-    ).limit(300))
+        {
+            "estimated_distance_cm": 1,
+            "blink_rate_per_min": 1,
+            "sample_count": 1,
+            "final_status": 1,
+        }
+    ))
 
     avg_dist = 60.0
     avg_blink = 15.0
     if recent_telemetry:
-        valid_dists = [r["estimated_distance_cm"] for r in recent_telemetry if r.get("estimated_distance_cm")]
-        valid_blinks = [r["blink_rate_per_min"] for r in recent_telemetry if r.get("blink_rate_per_min")]
-        if valid_dists:
-            avg_dist = round(sum(valid_dists) / len(valid_dists), 1)
-        if valid_blinks:
-            avg_blink = round(sum(valid_blinks) / len(valid_blinks), 1)
+        weighted_dists = [
+            (r["estimated_distance_cm"], r.get("sample_count", 1))
+            for r in recent_telemetry if r.get("estimated_distance_cm") is not None
+        ]
+        weighted_blinks = [
+            (r["blink_rate_per_min"], r.get("sample_count", 1))
+            for r in recent_telemetry if r.get("blink_rate_per_min") is not None
+        ]
+        if weighted_dists:
+            avg_dist = round(
+                sum(value * count for value, count in weighted_dists)
+                / sum(count for _, count in weighted_dists), 1
+            )
+        if weighted_blinks:
+            avg_blink = round(
+                sum(value * count for value, count in weighted_blinks)
+                / sum(count for _, count in weighted_blinks), 1
+            )
 
     # Compute trend values (last 7 points or padded with average)
     weekly_trend = scores[:7]
@@ -306,4 +325,3 @@ def get_analytics_summary():
         "posture_distribution": posture_counts,
         "weekly_trend": weekly_trend
     }), 200
-

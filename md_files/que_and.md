@@ -327,7 +327,7 @@ JSONL format allows low-overhead append operations without loading heavy databas
 
 ### Q7.2: How does the AI Report Generator work?
 **Answer:**
-1. **Telemetry Aggregation**: `generate_ai_pdf_report.py` reads the session JSONL file and computes aggregate metrics (Average Distance, % Safe Posture Time, Total Blinks, Peak Slouch Events).
+1. **Telemetry Aggregation**: `backend/generate_ai_pdf_report.py` reads the session JSONL file and computes aggregate metrics (Average Distance, % Safe Posture Time, Total Blinks, Peak Slouch Events).
 2. **Generative LLM Query**: Sends aggregated telemetry summaries to **Google Gemini 1.5 / Groq API** with an expert ergonomic system prompt, requesting custom health analysis.
 3. **Matplotlib Visualizations**: Renders high-resolution timeline charts (Distance over time, Posture distribution pie chart).
 4. **ReportLab PDF Synthesis**: Compiles text, charts, and LLM recommendations into a professional multi-page PDF (`Ergonomic_Report.pdf`).

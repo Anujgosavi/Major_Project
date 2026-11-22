@@ -77,7 +77,11 @@ export default function LiveFeed() {
 
   const startWebRTC = async () => {
     try {
-      const pc = new RTCPeerConnection();
+      const pc = new RTCPeerConnection({
+        iceServers: [],
+        bundlePolicy: 'max-bundle',
+        iceCandidatePoolSize: 2
+      });
       pcRef.current = pc;
 
       pc.ontrack = (event) => {
@@ -112,7 +116,7 @@ export default function LiveFeed() {
     }
   };
 
-  // Poll backend status every 500ms
+  // Poll backend status every 250ms
   useEffect(() => {
     const checkStatus = async () => {
       try {
@@ -149,7 +153,7 @@ export default function LiveFeed() {
       }
     };
 
-    pollRef.current = setInterval(checkStatus, 500);
+    pollRef.current = setInterval(checkStatus, 250);
     checkStatus();
     return () => clearInterval(pollRef.current);
   }, []);
@@ -170,13 +174,7 @@ export default function LiveFeed() {
   // Ensure WebRTC is connected when running
   useEffect(() => {
     if (status === 'running' && !pcRef.current) {
-      // Small delay to allow camera to initialize if just starting
-      const timer = setTimeout(() => {
-        if (!pcRef.current) {
-          startWebRTC();
-        }
-      }, 1000);
-      return () => clearTimeout(timer);
+      startWebRTC();
     }
   }, [status]);
 
@@ -336,6 +334,7 @@ export default function LiveFeed() {
     { label: 'BLINKS', value: stats.total_blinks || 0, icon: Eye },
     { label: 'BLINK RATE', value: `${stats.blink_rate || 0}/min`, icon: Zap },
     { label: 'INFERENCE', value: `${stats.inference_ms || 0} ms`, icon: Zap },
+    { label: 'STREAM AGE', value: `${stats.stream_age_ms || 0} ms`, icon: Clock },
     { label: 'NEXT BREAK', value: stats.countdown || '02:00', icon: Clock },
     { label: 'FRAMES', value: stats.frame_count || 0, icon: Activity },
   ];

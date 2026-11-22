@@ -227,7 +227,7 @@ def run_continuous_monitor(
             print("\n[..] Generating Gemini AI & PDF Ergonomic Report...")
             try:
                 import subprocess
-                cmd = [sys.executable, str(PROJECT_ROOT / "generate_ai_pdf_report.py"), "--telemetry", str(telemetry_logger.log_file)]
+                cmd = [sys.executable, str(PROJECT_ROOT / "backend" / "generate_ai_pdf_report.py"), "--telemetry", str(telemetry_logger.log_file)]
                 if api_key:
                     cmd.extend(["--api-key", api_key])
                 subprocess.run(cmd, check=True)

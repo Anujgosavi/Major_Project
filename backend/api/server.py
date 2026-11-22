@@ -86,6 +86,7 @@ class MonitorState:
         self.pdf_generating = False
         self.user_id = None
         self.session_id = None
+        self.latest_frame_time = 0.0
 
 state = MonitorState()
 
@@ -170,8 +171,15 @@ def _monitor_loop():
 
     try:
         while not state.stop_event.is_set() and cap.isOpened():
-            # Flush stale buffered frames to ensure we process the latest live frame
-            cap.grab()
+            # Discard buffered frames and retrieve the latest available frame.
+            # One extra grab is enough for DirectShow's single-frame buffer.
+            grabbed = False
+            for _ in range(2):
+                if not cap.grab():
+                    break
+                grabbed = True
+            if not grabbed:
+                break
             ret, frame = cap.retrieve()
             if not ret or frame is None:
                 ret, frame = cap.read()
@@ -251,6 +259,7 @@ def _monitor_loop():
             # Push frame for MJPEG streaming
             with state.frame_lock:
                 state.latest_frame = annotated.copy()
+                state.latest_frame_time = current_time
 
             # Update live stats for frontend polling
             elapsed = current_time - start_time
@@ -268,6 +277,7 @@ def _monitor_loop():
                 "slouch_ratio": _safe_float(result.get("slouch_ratio"), 0.0, 2),
                 "countdown": countdown_str,
                 "inference_ms": _safe_float(inference_ms, 0.0, 1),
+                "stream_age_ms": _safe_float((time.time() - state.latest_frame_time) * 1000.0, 0.0, 1),
                 "active_alerts": ui_alerts
             }
 
@@ -290,7 +300,7 @@ def _monitor_loop():
         pdf_gridfs_id = None
         try:
             import subprocess
-            cmd = [sys.executable, str(PROJECT_ROOT / "generate_ai_pdf_report.py"),
+            cmd = [sys.executable, str(PROJECT_ROOT / "backend" / "generate_ai_pdf_report.py"),
                    "--telemetry", str(telemetry_logger.log_file)]
             subprocess.run(cmd, check=True)
             pdf_path_obj = PROJECT_ROOT / "Ergonomic_Report.pdf"

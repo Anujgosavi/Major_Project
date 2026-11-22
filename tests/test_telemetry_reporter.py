@@ -104,6 +104,34 @@ class TestTelemetryLogger(unittest.TestCase):
             latest_path = os.path.join(tmp_dir, "latest_telemetry.jsonl")
             self.assertTrue(os.path.exists(latest_path))
 
+    def test_mongo_sync_uses_one_bucket_per_second(self):
+        """Verify MongoDB persistence is aggregated instead of frame-level."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            logger = TelemetryLogger(
+                logs_dir=Path(tmp_dir),
+                session_id="session-1",
+                user_id="user-1",
+            )
+            submitted = []
+            logger._insert_bucket = submitted.append
+            result = {
+                "timestamp": 1000.1,
+                "face_detected": True,
+                "estimated_distance_cm": 50.0,
+            }
+            decision = {"final_status": "SAFE", "reasons": []}
+            logger.log_frame(result, decision)
+            logger.log_frame({**result, "timestamp": 1000.8, "estimated_distance_cm": 60.0}, decision)
+            logger.log_frame({**result, "timestamp": 1001.1}, {"final_status": "WARNING", "reasons": ["too_close"]})
+
+            logger.close()
+
+            self.assertEqual(len(submitted), 2)
+            self.assertEqual(submitted[0]["sample_count"], 2)
+            self.assertEqual(submitted[0]["estimated_distance_cm"], 55.0)
+            self.assertEqual(submitted[1]["sample_count"], 1)
+            self.assertEqual(submitted[1]["final_status"], "WARNING")
+
 
 class TestSessionReporter(unittest.TestCase):
     """Tests for SessionReporter output."""
