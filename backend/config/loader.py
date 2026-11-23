@@ -7,7 +7,8 @@ import json
 from pathlib import Path
 from typing import Dict, Any, Optional
 
-DEFAULT_CONFIG_DIR = Path(__file__).resolve().parent.parent.parent / "config"
+from backend.paths import CONFIG_DIR
+DEFAULT_CONFIG_DIR = CONFIG_DIR
 
 DEFAULT_FINAL_POLICY: Dict[str, Any] = {
     "distance": {

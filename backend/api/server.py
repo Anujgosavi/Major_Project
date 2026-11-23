@@ -7,13 +7,15 @@ import sys
 import time
 import threading
 import math
+import os
+import argparse
 from pathlib import Path
 
 import io
 import datetime
 import cv2
 import numpy as np
-from flask import Flask, Response, jsonify, request, send_file, g
+from flask import Flask, Response, jsonify, request, send_file, send_from_directory, g
 from flask_cors import CORS
 import asyncio
 import uuid
@@ -42,10 +44,18 @@ def sanitize_for_json(obj):
         return [sanitize_for_json(item) for item in obj]
     return obj
 
-# Add project root to sys.path
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
+# Ensure Major_Project root is in sys.path before package imports
+_THIS_FILE = Path(__file__).resolve()
+_PROJECT_ROOT = _THIS_FILE.parent.parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+
+# Import centralized project paths
+from backend.paths import PROJECT_ROOT, REPORTS_DIR, LOGS_DIR, FRONTEND_BUILD_DIR
+
+from dotenv import load_dotenv
+load_dotenv(PROJECT_ROOT / ".env")
+load_dotenv()
 
 from backend.vision.pipeline import FrontCameraPipeline
 from backend.safety.engine import SafetyEngine
@@ -57,7 +67,11 @@ from backend.auth.routes import auth_bp, require_auth
 from backend.db.mongo import sessions_col, get_fs
 from backend.api.sessions_routes import sessions_bp
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    static_folder=str(FRONTEND_BUILD_DIR / "static"),
+    static_url_path="/static"
+)
 CORS(app, supports_credentials=True)
 
 # Register Blueprints
@@ -299,12 +313,13 @@ def _monitor_loop():
         print("\n[..] Generating Gemini AI & PDF Ergonomic Report...")
         pdf_gridfs_id = None
         try:
-            import subprocess
-            cmd = [sys.executable, str(PROJECT_ROOT / "backend" / "generate_ai_pdf_report.py"),
-                   "--telemetry", str(telemetry_logger.log_file)]
-            subprocess.run(cmd, check=True)
-            pdf_path_obj = PROJECT_ROOT / "Ergonomic_Report.pdf"
-            if pdf_path_obj.exists():
+            from backend.generate_ai_pdf_report import generate_pdf_report
+            pdf_path_obj = generate_pdf_report(
+                telemetry_path=telemetry_logger.log_file,
+                output_pdf="Ergonomic_Report.pdf",
+                output_dir=REPORTS_DIR
+            )
+            if pdf_path_obj and pdf_path_obj.exists():
                 state.pdf_path = str(pdf_path_obj)
                 print(f"[+] PDF saved to: {state.pdf_path}")
                 # Store PDF in MongoDB GridFS
@@ -428,17 +443,42 @@ def get_status():
     })), 200
 
 
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({
+        "status": "ok",
+        "app": "wellness_backend",
+        "running": state.running,
+        "pdf_generating": state.pdf_generating
+    }), 200
+
+
+@app.route('/api/shutdown', methods=['POST', 'GET'])
+def shutdown_server():
+    def _delayed_exit():
+        time.sleep(0.5)
+        os._exit(0)
+    threading.Thread(target=_delayed_exit, daemon=True).start()
+    return jsonify({"status": "shutting_down"}), 200
+
+
 @app.route('/api/download_pdf', methods=['GET'])
 @require_auth
 def download_pdf():
-    pdf_file = PROJECT_ROOT / "Ergonomic_Report.pdf"
-    if pdf_file.exists():
-        return send_file(
-            str(pdf_file),
-            mimetype="application/pdf",
-            as_attachment=True,
-            download_name="Ergonomic_Report.pdf"
-        )
+    candidates = []
+    if state.pdf_path:
+        candidates.append(Path(state.pdf_path))
+    candidates.append(REPORTS_DIR / "Ergonomic_Report.pdf")
+    candidates.append(PROJECT_ROOT / "Ergonomic_Report.pdf")
+
+    for pdf_file in candidates:
+        if pdf_file and pdf_file.exists():
+            return send_file(
+                str(pdf_file),
+                mimetype="application/pdf",
+                as_attachment=True,
+                download_name="Ergonomic_Report.pdf"
+            )
     return jsonify({"error": "Report PDF not found. Please stop a monitor session first."}), 404
 
 
@@ -503,17 +543,52 @@ def webrtc_offer():
 
 
 # ---------------------------------------------------------------------------
+# React Production Build Static Server (SPA Catch-all)
+# ---------------------------------------------------------------------------
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    if path.startswith("api/") or path.startswith("video_feed"):
+        return jsonify({"error": "Endpoint not found"}), 404
+
+    target = FRONTEND_BUILD_DIR / path
+    if path != "" and target.exists() and not target.is_dir():
+        return send_from_directory(str(FRONTEND_BUILD_DIR), path)
+
+    index_file = FRONTEND_BUILD_DIR / "index.html"
+    if index_file.exists():
+        return send_from_directory(str(FRONTEND_BUILD_DIR), "index.html")
+
+    return jsonify({
+        "status": "AI Ergonomics backend is running.",
+        "frontend_dir": str(FRONTEND_BUILD_DIR),
+        "frontend_exists": FRONTEND_BUILD_DIR.exists()
+    }), 200
+
+
+# ---------------------------------------------------------------------------
 # Entry Point
 # ---------------------------------------------------------------------------
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="AI Ergonomics — Flask API Server")
+    parser.add_argument("--host", default="127.0.0.1", help="Host interface to bind (default: 127.0.0.1)")
+    parser.add_argument("--port", type=int, default=5000, help="Port to bind (default: 5000)")
+    args = parser.parse_args()
+
     print("=" * 65)
-    print("  AI Ergonomics — Flask API Server")
+    print("  AI Ergonomics & Digital Wellness — Flask API Server")
+    print(f"  Listening on: http://{args.host}:{args.port}")
+    print(f"  Frontend UI : {FRONTEND_BUILD_DIR}")
+    print(f"  Logs Dir    : {LOGS_DIR}")
+    print(f"  Reports Dir : {REPORTS_DIR}")
     print("  Endpoints:")
-    print("    POST /api/start          — Start the live monitor")
+    print("    GET  /health             — Health check for desktop shell")
+    print("    POST /api/shutdown       — Clean server shutdown")
+    print("    POST /api/start          — Start live monitor")
     print("    POST /api/stop           — Stop monitor & generate PDF")
     print("    POST /api/dismiss_alert  — Dismiss active warnings")
     print("    GET  /api/status         — Get current session status")
     print("    GET  /video_feed         — MJPEG live stream")
     print("    POST /api/webrtc/offer   — WebRTC SDP Offer")
     print("=" * 65)
-    app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
+    app.run(host=args.host, port=args.port, debug=False, threaded=True)

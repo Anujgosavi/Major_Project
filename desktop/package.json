@@ -1,0 +1,58 @@
+{
+  "name": "digital-wellness-assistant",
+  "version": "1.0.0",
+  "description": "AI Ergonomics & Digital Wellness Assistant Desktop Application",
+  "main": "main.cjs",
+  "author": "Antigravity Team",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.digitalwellness.assistant",
+    "productName": "Digital Wellness Assistant",
+    "copyright": "Copyright © 2026",
+    "directories": {
+      "output": "dist-installer"
+    },
+    "forceCodeSigning": false,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Digital Wellness Assistant",
+      "uninstallDisplayName": "Digital Wellness Assistant"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "splash.html",
+      "assets/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../dist/wellness_backend",
+        "to": "python-backend/wellness_backend",
+        "filter": ["**/*"]
+      }
+    ]
+  }
+}

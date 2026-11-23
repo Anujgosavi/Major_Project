@@ -18,9 +18,11 @@ from typing import Dict, Any, Optional
 
 
 import os
+from pathlib import Path
 try:
     from dotenv import load_dotenv
     load_dotenv()
+    load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
 except ImportError:
     pass
 

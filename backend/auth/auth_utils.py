@@ -2,12 +2,14 @@
 JWT + bcrypt auth utilities.
 """
 import os
+from pathlib import Path
 import datetime
 import bcrypt
 import jwt
 from dotenv import load_dotenv
 
 load_dotenv()
+load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
 
 JWT_SECRET = os.getenv("JWT_SECRET", "fallback_secret_change_me")
 JWT_ALGORITHM = "HS256"

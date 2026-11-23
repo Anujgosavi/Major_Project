@@ -7,7 +7,8 @@ import json
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 
-DEFAULT_CALIB_DIR = Path(__file__).resolve().parent.parent.parent / "calibration"
+from backend.paths import CALIB_DIR
+DEFAULT_CALIB_DIR = CALIB_DIR
 
 DEFAULT_DISTANCE_CALIB = {
     "model_type": "inverse",

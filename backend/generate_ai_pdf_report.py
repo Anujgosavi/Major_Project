@@ -19,6 +19,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from backend.reports.ai_insights import GeminiInsightsGenerator
 from backend.reports.pdf_generator import ErgonomicPDFReportGenerator
+from backend.paths import PROJECT_ROOT, LOGS_DIR, REPORTS_DIR
 
 
 def load_telemetry(log_file: Path) -> List[Dict[str, Any]]:
@@ -103,9 +104,50 @@ def compute_summary_stats(records: List[Dict[str, Any]]) -> Dict[str, Any]:
     }
 
 
+def generate_pdf_report(
+    telemetry_path: Optional[Path] = None,
+    output_pdf: str = "Ergonomic_Report.pdf",
+    output_dir: Optional[Path] = None,
+    api_key: Optional[str] = None
+) -> Optional[Path]:
+    """
+    Generate an ergonomic PDF report from a telemetry JSONL file.
+    Can be called directly from Python code (e.g. server.py) without subprocess.
+    """
+    out_dir = Path(output_dir) if output_dir else REPORTS_DIR
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    target_log = Path(telemetry_path) if telemetry_path else (LOGS_DIR / "latest_telemetry.jsonl")
+    records = load_telemetry(target_log)
+    if not records:
+        fallback_log = LOGS_DIR / "latest_telemetry.jsonl"
+        if fallback_log.exists() and fallback_log != target_log:
+            records = load_telemetry(fallback_log)
+
+    if not records:
+        print("[!] Error: No telemetry records available for report generation.")
+        return None
+
+    summary = compute_summary_stats(records)
+    print(f"[+] Loaded {len(records)} records. Posture Score: {summary.get('posture_score', 0):.1f}%")
+
+    gemini_gen = GeminiInsightsGenerator(api_key=api_key)
+    ai_insights = gemini_gen.generate_insights(summary)
+
+    pdf_gen = ErgonomicPDFReportGenerator(output_dir=out_dir)
+    pdf_path = pdf_gen.build_pdf(
+        summary_data=summary,
+        records=records,
+        ai_insights=ai_insights,
+        filename=output_pdf
+    )
+    print(f"[+] PDF Report successfully generated at: {pdf_path}")
+    return Path(pdf_path)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Gemini AI & PDF Ergonomic Report Generator")
-    parser.add_argument("--telemetry", type=Path, default=PROJECT_ROOT / "logs" / "latest_telemetry.jsonl",
+    parser.add_argument("--telemetry", type=Path, default=LOGS_DIR / "latest_telemetry.jsonl",
                         help="Path to telemetry JSONL log file")
     parser.add_argument("--api-key", default=None, help="Gemini API Key (defaults to project key)")
     parser.add_argument("--output-pdf", default="Ergonomic_Report.pdf", help="Output PDF filename")
@@ -115,39 +157,15 @@ def main():
     print("  Gemini AI & PDF Ergonomic Report Generator")
     print("=" * 65)
 
-    print(f"[..] Loading frame telemetry from: {args.telemetry}")
-    records = load_telemetry(args.telemetry)
-    if not records:
-        latest_file = PROJECT_ROOT / "logs" / "latest_telemetry.jsonl"
-        if latest_file.exists():
-            print(f"[..] Fallback: Loading telemetry from {latest_file}")
-            records = load_telemetry(latest_file)
-    if not records:
-        print("[!] Error: No valid telemetry records found.")
-        sys.exit(1)
-
-    print(f"[+] Loaded {len(records)} frame records.")
-    summary = compute_summary_stats(records)
-    print(f"[+] Posture Score: {summary['posture_score']:.1f}% | Duration: {summary['duration_min']:.2f} mins")
-
-    print("[..] Calling Gemini LLM API (gemini-2.5-flash) for Ergonomic Insights...")
-    gemini_gen = GeminiInsightsGenerator(api_key=args.api_key)
-    ai_insights = gemini_gen.generate_insights(summary)
-    print("[+] AI Insights generated successfully.")
-
-    print("[..] Rendering Matplotlib charts & compiling ReportLab PDF...")
-    pdf_gen = ErgonomicPDFReportGenerator(output_dir=PROJECT_ROOT)
-    pdf_path = pdf_gen.build_pdf(
-        summary_data=summary,
-        records=records,
-        ai_insights=ai_insights,
-        filename=args.output_pdf
+    pdf_path = generate_pdf_report(
+        telemetry_path=args.telemetry,
+        output_pdf=args.output_pdf,
+        api_key=args.api_key
     )
-
-    print("\n" + "=" * 65)
-    print(f"[+] PDF REPORT READY FOR DOWNLOAD:")
-    print(f"    Path: {pdf_path}")
-    print("=" * 65)
+    if pdf_path:
+        print(f"\n[+] PDF REPORT READY: {pdf_path}")
+    else:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -10,7 +10,8 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
 from typing import Dict, Any, Optional
 
-DEFAULT_LOGS_DIR = Path(__file__).resolve().parent.parent.parent / "logs"
+from backend.paths import LOGS_DIR
+DEFAULT_LOGS_DIR = LOGS_DIR
 
 
 class TelemetryLogger:

@@ -22,9 +22,9 @@ from backend.vision.squint import SquintDetector
 from backend.vision.gaze_fixation import GazeFixationDetector
 from backend.vision.forward_lean import ForwardLeanDetector
 from backend.vision.brightness import analyze_brightness
+from backend.paths import MODELS_DIR
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-DEFAULT_MODELS_DIR = PROJECT_ROOT / "models"
+DEFAULT_MODELS_DIR = MODELS_DIR
 
 
 class FrontCameraPipeline:
