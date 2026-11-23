@@ -2,20 +2,20 @@
 
 /* ── CSS Variables ── */
 .live-feed {
-  --color-primary: #2563eb;
-  --color-primary-light: #60a5fa;
-  --color-secondary: #7c3aed;
+  --color-primary: #10b981;
+  --color-primary-light: #34d399;
+  --color-secondary: #059669;
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
-  --color-info: #3b82f6;
+  --color-info: #06b6d4;
   
-  --bg-dark: #0a0e1a;
+  --bg-dark: #090d16;
   --bg-card: rgba(255, 255, 255, 0.03);
-  --bg-card-hover: rgba(255, 255, 255, 0.06);
-  --border-color: rgba(255, 255, 255, 0.06);
+  --bg-card-hover: rgba(255, 255, 255, 0.05);
+  --border-color: rgba(255, 255, 255, 0.07);
   
-  --text-primary: #f1f5f9;
+  --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
   

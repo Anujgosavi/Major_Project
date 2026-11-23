@@ -1,6 +1,7 @@
 // src/components/Navbar.js
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, NavLink } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { 
   Activity, 
   LayoutDashboard, 
@@ -8,12 +9,14 @@ import {
   FileText, 
   UserPlus, 
   LogIn, 
+  LogOut,
   User, 
   X 
 } from 'lucide-react';
 import './Navbar.css';
 
 function Navbar() {
+  const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
@@ -73,17 +76,34 @@ function Navbar() {
 
         {/* Auth Buttons */}
         <div className="navbar-actions">
-          <Link to="/signup" className="btn-auth btn-signup">
-            <UserPlus size={16} />
-            <span>Sign Up</span>
-          </Link>
-          <Link to="/login" className="btn-auth btn-login">
-            <LogIn size={16} />
-            <span>Login</span>
-          </Link>
-          <Link to="/dashboard" className="btn-auth btn-profile" aria-label="Profile">
-            <User size={18} />
-          </Link>
+          {user ? (
+            <>
+              <Link to="/dashboard" className="btn-auth btn-login" style={{ background: 'rgba(59, 130, 246, 0.15)', borderColor: '#3b82f6' }}>
+                <User size={16} />
+                <span>{user.displayName || user.name || 'Dashboard'}</span>
+              </Link>
+              <button 
+                onClick={logout} 
+                className="btn-auth btn-signup" 
+                style={{ background: 'transparent', borderColor: 'rgba(239, 68, 68, 0.4)', color: '#f87171' }}
+                title="Logout"
+              >
+                <LogOut size={16} />
+                <span>Logout</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/signup" className="btn-auth btn-signup">
+                <UserPlus size={16} />
+                <span>Sign Up</span>
+              </Link>
+              <Link to="/login" className="btn-auth btn-login">
+                <LogIn size={16} />
+                <span>Login</span>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -133,14 +153,29 @@ function Navbar() {
           </div>
           
           <div className="mobile-auth-actions">
-            <Link to="/signup" className="mobile-btn-primary">
-              <UserPlus size={18} />
-              Sign Up
-            </Link>
-            <Link to="/login" className="mobile-btn-secondary">
-              <LogIn size={18} />
-              Login
-            </Link>
+            {user ? (
+              <>
+                <Link to="/dashboard" className="mobile-btn-primary">
+                  <User size={18} />
+                  {user.displayName || user.name || 'Dashboard'}
+                </Link>
+                <button onClick={logout} className="mobile-btn-secondary" style={{ color: '#f87171' }}>
+                  <LogOut size={18} />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/signup" className="mobile-btn-primary">
+                  <UserPlus size={18} />
+                  Sign Up
+                </Link>
+                <Link to="/login" className="mobile-btn-secondary">
+                  <LogIn size={18} />
+                  Login
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

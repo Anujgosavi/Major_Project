@@ -89,11 +89,12 @@
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  background: linear-gradient(135deg, #10b981, #059669);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
 }
 
 .brand-icon {
@@ -108,8 +109,8 @@
   position: absolute;
   inset: -2px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
-  opacity: 0.3;
+  background: #10b981;
+  opacity: 0.25;
   filter: blur(8px);
   animation: glowPulse 3s ease-in-out infinite;
 }
@@ -364,12 +365,12 @@
 }
 
 .nav-item.active {
-  background: rgba(37, 99, 235, 0.1);
-  color: #60a5fa;
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
 }
 
 .nav-item.active .nav-icon {
-  color: #60a5fa;
+  color: #34d399;
 }
 
 .nav-icon-wrapper {
@@ -396,7 +397,7 @@
   position: absolute;
   inset: -4px;
   border-radius: 6px;
-  border: 1.5px solid #2563eb;
+  border: 1.5px solid #10b981;
   animation: indicatorPulse 2s ease-in-out infinite;
 }
 

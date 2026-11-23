@@ -175,14 +175,14 @@
 }
 
 .dashboard-enhanced .action-btn.primary {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  background: linear-gradient(135deg, #10b981, #059669);
   border: none;
   color: white;
-  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
 
 .dashboard-enhanced .action-btn.primary:hover {
-  box-shadow: 0 6px 25px rgba(37, 99, 235, 0.45);
+  box-shadow: 0 6px 25px rgba(16, 185, 129, 0.45);
   transform: translateY(-2px);
 }
 

@@ -1,5 +1,5 @@
 // src/pages/Signup.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -30,8 +30,15 @@ export default function Signup() {
   const [success, setSuccess] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const { signup } = useAuth();
+  const { signup, user } = useAuth();
   const navigate = useNavigate();
+
+  // If already authenticated, redirect directly to dashboard
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

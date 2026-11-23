@@ -1,7 +1,7 @@
 // src/utils/api.js
 // Centralized fetch wrapper that auto-injects JWT Authorization headers
 
-const API_BASE = '';
+export const API_BASE = (typeof window !== 'undefined' && window.location.port === '3000') ? 'http://localhost:5000' : '';
 
 const getAuthHeader = () => {
   const token = localStorage.getItem('ergonomics_token');

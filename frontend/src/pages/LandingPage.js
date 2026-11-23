@@ -201,49 +201,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="stats-section">
-        <div className="stats-container">
-          <div className="stats-grid">
-            <div className="stat-item animate-on-scroll">
-              <div className="stat-number">98%</div>
-              <div className="stat-label">Posture Accuracy</div>
-              <div className="stat-trend up">
-                <TrendingUp className="trend-icon" />
-                <span>+12% this month</span>
-              </div>
-            </div>
-            <div className="stat-divider"></div>
-            <div className="stat-item animate-on-scroll" style={{ animationDelay: '0.15s' }}>
-              <div className="stat-number">2.5K+</div>
-              <div className="stat-label">Active Users</div>
-              <div className="stat-trend up">
-                <Users className="trend-icon" />
-                <span>+350 this week</span>
-              </div>
-            </div>
-            <div className="stat-divider"></div>
-            <div className="stat-item animate-on-scroll" style={{ animationDelay: '0.3s' }}>
-              <div className="stat-number">24/7</div>
-              <div className="stat-label">Real-time Monitoring</div>
-              <div className="stat-trend up">
-                <Activity className="trend-icon" />
-                <span>Always active</span>
-              </div>
-            </div>
-            <div className="stat-divider"></div>
-            <div className="stat-item animate-on-scroll" style={{ animationDelay: '0.45s' }}>
-              <div className="stat-number">4.9★</div>
-              <div className="stat-label">User Rating</div>
-              <div className="stat-trend up">
-                <Star className="trend-icon" />
-                <span>Based on 200+ reviews</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Testimonials Section */}
       <section className="testimonials-section">
         <div className="testimonials-container">

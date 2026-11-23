@@ -3,8 +3,30 @@ import api from '../utils/api';
 
 const AuthContext = createContext(null);
 
+const normalizeUser = (token, rawUser) => {
+  if (!rawUser) return null;
+  const displayName = rawUser.displayName || rawUser.name || (rawUser.email ? rawUser.email.split('@')[0] : 'User');
+  return {
+    token,
+    id: rawUser.id || rawUser._id || 'local-user',
+    name: displayName,
+    displayName,
+    email: rawUser.email || '',
+    photoURL: rawUser.photoURL || null
+  };
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem('ergonomics_user');
+      const token = localStorage.getItem('ergonomics_token');
+      if (savedUser && token) {
+        return normalizeUser(token, JSON.parse(savedUser));
+      }
+    } catch (e) {}
+    return null;
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,15 +37,17 @@ export const AuthProvider = ({ children }) => {
           const res = await api.get('/api/auth/me');
           if (res.ok) {
             const data = await res.json();
-            setUser({ token, id: data.id, name: data.name, email: data.email });
-          } else {
-            // Token expired or invalid
+            const normalized = normalizeUser(token, data);
+            setUser(normalized);
+            localStorage.setItem('ergonomics_user', JSON.stringify(normalized));
+          } else if (res.status === 401) {
             localStorage.removeItem('ergonomics_token');
+            localStorage.removeItem('ergonomics_user');
             setUser(null);
           }
         } catch (err) {
-          console.error('Failed to restore session:', err);
-          // Don't wipe token on network error, keep offline state if needed or clear
+          console.error('Failed to restore session via network:', err);
+          // Keep existing user from localStorage on transient network errors
         }
       }
       setLoading(false);
@@ -40,7 +64,9 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: data.error || 'Login failed' };
       }
       localStorage.setItem('ergonomics_token', data.token);
-      setUser({ token: data.token, ...data.user });
+      const normalized = normalizeUser(data.token, data.user);
+      localStorage.setItem('ergonomics_user', JSON.stringify(normalized));
+      setUser(normalized);
       return { success: true };
     } catch (err) {
       return { success: false, error: 'Network error. Please try again.' };
@@ -55,7 +81,9 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: data.error || 'Registration failed' };
       }
       localStorage.setItem('ergonomics_token', data.token);
-      setUser({ token: data.token, ...data.user });
+      const normalized = normalizeUser(data.token, data.user);
+      localStorage.setItem('ergonomics_user', JSON.stringify(normalized));
+      setUser(normalized);
       return { success: true };
     } catch (err) {
       return { success: false, error: 'Network error. Please try again.' };
@@ -64,6 +92,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('ergonomics_token');
+    localStorage.removeItem('ergonomics_user');
     setUser(null);
   };
 

@@ -32,6 +32,8 @@ export default function Layout() {
     return () => document.removeEventListener('keydown', handleEscape);
   }, []);
 
+  const userName = user?.displayName || user?.name || (user?.email ? user.email.split('@')[0] : 'User');
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -90,45 +92,20 @@ export default function Layout() {
           </div>
 
           <div className="header-right">
-            {/* Search */}
-            <div className="header-search">
-              <i className="fa-solid fa-search search-icon"></i>
-              <input 
-                type="text" 
-                placeholder="Search..." 
-                className="search-input"
-                aria-label="Search"
-              />
-              <kbd className="search-shortcut">⌘K</kbd>
-            </div>
-
-            {/* Notifications */}
-            <button className="header-icon-btn" aria-label="Notifications">
-              <i className="fa-regular fa-bell"></i>
-              <span className="notification-dot"></span>
-            </button>
-
             {/* User Profile */}
             <div className="header-profile">
               <div className="profile-avatar">
                 <img 
-                  src={user?.photoURL || `https://ui-avatars.com/api/?name=${user?.displayName || 'User'}&background=2563eb&color=fff&size=32`} 
-                  alt={user?.displayName || 'User'}
+                  src={user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=10b981&color=fff&size=32`} 
+                  alt={userName}
                   className="avatar-image"
                 />
                 <span className="avatar-status online"></span>
               </div>
               <div className="profile-info">
-                <span className="profile-name">{user?.displayName || 'User'}</span>
-                <span className="profile-role">Admin</span>
+                <span className="profile-name">{userName}</span>
+                <span className="profile-role">Active</span>
               </div>
-              <button 
-                className="profile-dropdown-btn"
-                onClick={() => {/* Toggle dropdown */}}
-                aria-label="User menu"
-              >
-                <i className="fa-solid fa-chevron-down"></i>
-              </button>
             </div>
 
             {/* Logout Button */}
@@ -146,30 +123,6 @@ export default function Layout() {
         {/* Page Content */}
         <main className="layout-content" ref={mainRef}>
           <div className="content-wrapper">
-            {/* Page Header */}
-            <div className="page-header">
-              <div className="page-header-left">
-                <h1 className="page-title">
-                  {location.pathname === '/' ? 'Dashboard' : 
-                   location.pathname.split('/').pop().charAt(0).toUpperCase() + 
-                   location.pathname.split('/').pop().slice(1)}
-                </h1>
-                <p className="page-subtitle">
-                  Welcome back, {user?.displayName || 'User'}! Here's what's happening with your ergonomics.
-                </p>
-              </div>
-              <div className="page-header-right">
-                <button className="page-action-btn">
-                  <i className="fa-regular fa-file-pdf"></i>
-                  <span>Export Report</span>
-                </button>
-                <button className="page-action-btn primary">
-                  <i className="fa-regular fa-plus"></i>
-                  <span>New Session</span>
-                </button>
-              </div>
-            </div>
-
             {/* Outlet */}
             <div className="page-content">
               <Outlet />

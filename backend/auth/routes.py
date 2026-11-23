@@ -83,7 +83,7 @@ def register():
     token = generate_token(str(user_id), name, email)
     return jsonify({
         "token": token,
-        "user": {"id": str(user_id), "name": name, "email": email}
+        "user": {"id": str(user_id), "name": name, "displayName": name, "email": email}
     }), 201
 
 
@@ -113,7 +113,7 @@ def login():
     token = generate_token(str(user["_id"]), user["name"], user["email"])
     return jsonify({
         "token": token,
-        "user": {"id": str(user["_id"]), "name": user["name"], "email": user["email"]}
+        "user": {"id": str(user["_id"]), "name": user["name"], "displayName": user["name"], "email": user["email"]}
     }), 200
 
 
@@ -130,6 +130,7 @@ def me():
     return jsonify({
         "id": str(user["_id"]),
         "name": user["name"],
+        "displayName": user["name"],
         "email": user["email"],
         "created_at": user.get("created_at", "").isoformat() if user.get("created_at") else None,
         "last_login": user.get("last_login", "").isoformat() if user.get("last_login") else None,

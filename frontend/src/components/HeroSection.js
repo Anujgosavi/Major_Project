@@ -1,10 +1,12 @@
 // src/components/HeroSection.js
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import Navbar from './Navbar';
 import './HeroSection.css';
 
 function HeroSection() {
+  const { user } = useAuth();
   const heroRef = useRef(null);
   
   useEffect(() => {
@@ -83,31 +85,13 @@ function HeroSection() {
             {/* CTA Buttons */}
             <div className="hero-actions animate-on-scroll">
               <Link to="/dashboard" className="btn-primary">
-                <span>Get Started</span>
+                <span>{user ? 'Go to Dashboard' : 'Get Started'}</span>
                 <i className="fa-solid fa-arrow-right"></i>
               </Link>
               <Link to="/live" className="btn-secondary">
                 <i className="fa-regular fa-play-circle"></i>
                 <span>Live Demo</span>
               </Link>
-            </div>
-            
-            {/* Stats */}
-            <div className="hero-stats animate-on-scroll">
-              <div className="stat-item">
-                <span className="stat-number">98%</span>
-                <span className="stat-label">Accuracy Rate</span>
-              </div>
-              <div className="stat-divider"></div>
-              <div className="stat-item">
-                <span className="stat-number">2.5K+</span>
-                <span className="stat-label">Active Users</span>
-              </div>
-              <div className="stat-divider"></div>
-              <div className="stat-item">
-                <span className="stat-number">24/7</span>
-                <span className="stat-label">Real-time Monitoring</span>
-              </div>
             </div>
           </div>
           

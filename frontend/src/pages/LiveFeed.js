@@ -20,9 +20,7 @@ import {
   RefreshCw 
 } from 'lucide-react';
 import './LiveFeed.css';
-import api from '../utils/api';
-
-const API_BASE = '';
+import api, { API_BASE } from '../utils/api';
 
 // Notification config
 const ALERT_CONFIG = {
@@ -133,9 +131,9 @@ export default function LiveFeed() {
         setBackendOnline(true);
 
         if (data.running) {
-          setStatus('running');
+          setStatus((prev) => (prev === 'stopping' ? 'stopping' : 'running'));
           setStats(data.stats || {});
-        } else if (data.pdf_generating) {
+        } else if (data.pdf_generating || data.stopping) {
           setStatus('pdf_generating');
         } else {
           setStatus((prev) => {
@@ -192,6 +190,21 @@ export default function LiveFeed() {
   const handleStop = async () => {
     try {
       setStatus('stopping');
+      if (pcRef.current) {
+        try {
+          pcRef.current.close();
+        } catch (e) {}
+        pcRef.current = null;
+      }
+      if (videoRef.current) {
+        if (videoRef.current.srcObject) {
+          try {
+            const tracks = videoRef.current.srcObject.getTracks?.() || [];
+            tracks.forEach((track) => track.stop());
+          } catch (e) {}
+        }
+        videoRef.current.srcObject = null;
+      }
       await api.post('/api/stop');
     } catch (err) {
       console.error('Failed to stop:', err);

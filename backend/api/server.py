@@ -84,6 +84,7 @@ app.register_blueprint(sessions_bp, url_prefix='/api/sessions')
 class MonitorState:
     def __init__(self):
         self.running = False
+        self.stopping = False
         self.lock = threading.Lock()
         self.thread = None
         self.latest_frame = None
@@ -124,6 +125,9 @@ class MonitorVideoTrack(VideoStreamTrack):
 
         frame = None
         while True:
+            if not state.running and state.latest_frame is None:
+                frame = np.zeros((480, 640, 3), dtype=np.uint8)
+                break
             with state.frame_lock:
                 if state.latest_frame is not None:
                     frame = state.latest_frame.copy()
@@ -303,13 +307,19 @@ def _monitor_loop():
         cap.release()
         pipeline.close()
         telemetry_logger.close()
+        with state.frame_lock:
+            state.latest_frame = None
+        with state.lock:
+            state.running = False
+            state.stopping = False
+            state.pdf_generating = True
+
         elapsed = time.time() - start_time
 
         print(f"\n[+] Shutdown. {frame_count} frames in {elapsed:.2f}s.")
         print("\n" + reporter.generate_report())
 
         # --- Auto-generate PDF ---
-        state.pdf_generating = True
         print("\n[..] Generating Gemini AI & PDF Ergonomic Report...")
         pdf_gridfs_id = None
         try:
@@ -340,7 +350,8 @@ def _monitor_loop():
         except Exception as e:
             print(f"[!] PDF generation error: {e}")
         finally:
-            state.pdf_generating = False
+            with state.lock:
+                state.pdf_generating = False
 
         # Update session document in MongoDB
         if state.session_id:
@@ -364,7 +375,10 @@ def _monitor_loop():
 
         with state.lock:
             state.running = False
-        state.latest_frame = None
+            state.stopping = False
+            state.pdf_generating = False
+        with state.frame_lock:
+            state.latest_frame = None
         print("[+] Monitor thread fully stopped.")
 
 
@@ -398,6 +412,7 @@ def start_monitor():
             print(f"[!] Warning: Failed to create session in MongoDB: {e}")
 
         state.running = True
+        state.stopping = False
         state.user_id = user_id
         state.session_id = session_id
         state.pdf_generating = False
@@ -412,9 +427,25 @@ def start_monitor():
 @require_auth
 def stop_monitor():
     with state.lock:
-        if not state.running:
+        if not state.running and not state.stopping:
             return jsonify({"status": "not_running"}), 200
+        state.running = False
+        state.stopping = True
     state.stop_event.set()
+    with state.frame_lock:
+        state.latest_frame = None
+
+    async def _close_pcs():
+        coros = [pc.close() for pc in list(pcs)]
+        pcs.clear()
+        if coros:
+            await asyncio.gather(*coros, return_exceptions=True)
+
+    try:
+        asyncio.run_coroutine_threadsafe(_close_pcs(), webrtc_loop)
+    except Exception as e:
+        print(f"[!] Warning: closing WebRTC pcs failed: {e}")
+
     return jsonify({"status": "stopping"}), 200
 
 
@@ -437,6 +468,7 @@ def dismiss_alert():
 def get_status():
     return jsonify(sanitize_for_json({
         "running": state.running,
+        "stopping": state.stopping,
         "pdf_generating": state.pdf_generating,
         "pdf_path": state.pdf_path,
         "stats": state.session_stats,
