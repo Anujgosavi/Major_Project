@@ -10,8 +10,8 @@
   display: flex;
   flex-direction: column;
   width: 280px;
-  background: linear-gradient(180deg, #0a0e1a 0%, #111827 100%);
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  background: #1a120c;
+  border-right: 1px solid rgba(255, 220, 205, 0.08);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-y: auto;
   overflow-x: hidden;
@@ -89,12 +89,12 @@
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, #d47a5b, #c6724b);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+  box-shadow: 0 4px 14px rgba(212, 122, 91, 0.3);
 }
 
 .brand-icon {
@@ -109,7 +109,7 @@
   position: absolute;
   inset: -2px;
   border-radius: 10px;
-  background: #10b981;
+  background: #f2b7a9;
   opacity: 0.25;
   filter: blur(8px);
   animation: glowPulse 3s ease-in-out infinite;
@@ -248,7 +248,7 @@
 
 .user-role {
   font-size: 0.7rem;
-  color: #64748b;
+  color: #f2b7a9;
   font-weight: 500;
 }
 
@@ -365,12 +365,12 @@
 }
 
 .nav-item.active {
-  background: rgba(16, 185, 129, 0.12);
-  color: #34d399;
+  background: rgba(212, 122, 91, 0.12);
+  color: #f2b7a9;
 }
 
 .nav-item.active .nav-icon {
-  color: #34d399;
+  color: #f2b7a9;
 }
 
 .nav-icon-wrapper {
@@ -397,7 +397,7 @@
   position: absolute;
   inset: -4px;
   border-radius: 6px;
-  border: 1.5px solid #10b981;
+  border: 1.5px solid #d47a5b;
   animation: indicatorPulse 2s ease-in-out infinite;
 }
 

@@ -96,7 +96,7 @@ export default function Layout() {
             <div className="header-profile">
               <div className="profile-avatar">
                 <img 
-                  src={user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=10b981&color=fff&size=32`} 
+                  src={user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=d47a5b&color=fff&size=32`} 
                   alt={userName}
                   className="avatar-image"
                 />

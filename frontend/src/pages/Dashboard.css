@@ -2,16 +2,16 @@
 
 /* ── CSS Variables ── */
 .dashboard-enhanced {
-  --score-excellent: #10b981;
-  --score-good: #3b82f6;
+  --score-excellent: #d47a5b;
+  --score-good: #f2b7a9;
   --score-fair: #f59e0b;
-  --score-poor: #ef4444;
+  --score-poor: #e05252;
   
-  --color-success: #10b981;
-  --color-info: #3b82f6;
+  --color-success: #d47a5b;
+  --color-info: #f2b7a9;
   --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-  --color-purple: #8b5cf6;
+  --color-danger: #e05252;
+  --color-purple: #c6724b;
   
   padding: 24px 32px;
   max-width: 1400px;
@@ -175,14 +175,15 @@
 }
 
 .dashboard-enhanced .action-btn.primary {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, #d47a5b, #c6724b);
   border: none;
   color: white;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 15px rgba(212, 122, 91, 0.35);
 }
 
 .dashboard-enhanced .action-btn.primary:hover {
-  box-shadow: 0 6px 25px rgba(16, 185, 129, 0.45);
+  background: linear-gradient(135deg, #e59074, #d47a5b);
+  box-shadow: 0 6px 25px rgba(212, 122, 91, 0.45);
   transform: translateY(-2px);
 }
 

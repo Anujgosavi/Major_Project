@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from './Navbar';
+import heroWellnessImg from '../AImages/hero_wellness.png';
 import './HeroSection.css';
 
 function HeroSection() {
@@ -98,22 +99,28 @@ function HeroSection() {
           {/* Visual Element / Illustration */}
           <div className="hero-visual animate-on-scroll">
             <div className="visual-container">
-              <div className="visual-orb">
-                <div className="orb-inner"></div>
+              <div className="hero-illustration-stage">
+                <div className="illustration-ambient-glow"></div>
                 <div className="orb-ring"></div>
                 <div className="orb-ring ring-2"></div>
+                <div className="orb-backdrop-disk"></div>
+                <img 
+                  src={heroWellnessImg} 
+                  alt="AI Ergonomics Digital Wellness" 
+                  className="hero-wellness-image"
+                />
               </div>
               <div className="visual-icons">
-                <div className="icon-item icon-1">
+                <div className="icon-item icon-1" title="Real-time Vision AI">
                   <i className="fa-solid fa-camera"></i>
                 </div>
-                <div className="icon-item icon-2">
+                <div className="icon-item icon-2" title="Neural Processing">
                   <i className="fa-solid fa-microchip"></i>
                 </div>
-                <div className="icon-item icon-3">
+                <div className="icon-item icon-3" title="Posture Analytics">
                   <i className="fa-solid fa-chart-line"></i>
                 </div>
-                <div className="icon-item icon-4">
+                <div className="icon-item icon-4" title="Ergonomic Shield">
                   <i className="fa-solid fa-shield-alt"></i>
                 </div>
               </div>

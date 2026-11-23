@@ -128,7 +128,7 @@ export default function Sidebar({ isMobileOpen = false, onClose = () => {} }) {
           <div className="sidebar-user-profile">
             <div className="user-avatar-wrapper">
               <img 
-                src={user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=10b981&color=fff&size=40`} 
+                src={user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=d47a5b&color=fff&size=40`} 
                 alt={displayName}
                 className="user-avatar"
               />

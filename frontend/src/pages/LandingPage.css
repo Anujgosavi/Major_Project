@@ -2,23 +2,23 @@
 
 /* ── CSS Variables ── */
 :root {
-  --color-primary: #2563eb;
-  --color-primary-dark: #1d4ed8;
-  --color-primary-light: #60a5fa;
-  --color-secondary: #7c3aed;
-  --color-secondary-light: #a78bfa;
-  --color-accent: #10b981;
+  --color-primary: #d47a5b;
+  --color-primary-dark: #c6724b;
+  --color-primary-light: #f2b7a9;
+  --color-secondary: #e59074;
+  --color-secondary-light: #f7cac0;
+  --color-accent: #f2b7a9;
   --color-warning: #f59e0b;
-  --color-danger: #ef4444;
+  --color-danger: #e05252;
   
-  --bg-dark: #0a0e1a;
-  --bg-card: rgba(255, 255, 255, 0.03);
-  --bg-card-hover: rgba(255, 255, 255, 0.06);
-  --border-color: rgba(255, 255, 255, 0.06);
+  --bg-dark: #18110b;
+  --bg-card: rgba(255, 235, 228, 0.04);
+  --bg-card-hover: rgba(255, 235, 228, 0.07);
+  --border-color: rgba(255, 220, 205, 0.08);
   
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #fdfaf7;
+  --text-secondary: #d6c3bb;
+  --text-muted: #9e8b82;
 }
 
 /* ── Landing Page ── */
@@ -38,7 +38,7 @@
   display: inline-block;
   padding: 4px 16px;
   border-radius: 20px;
-  background: rgba(37, 99, 235, 0.1);
+  background: rgba(212, 122, 91, 0.12);
   color: var(--color-primary-light);
   font-size: 0.75rem;
   font-weight: 600;
@@ -56,7 +56,7 @@
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, var(--color-primary-light), var(--color-secondary-light));
+  background: linear-gradient(135deg, #fdfaf7 0%, #f2b7a9 50%, #d47a5b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -239,7 +239,7 @@
 }
 
 .service-icon-wrapper.blue {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  background: linear-gradient(135deg, #d47a5b, #c6724b);
 }
 
 .service-icon-wrapper.green {

@@ -1,5 +1,5 @@
 // src/pages/LandingPage.js
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Camera, 
@@ -14,9 +14,6 @@ import {
   ArrowRight,
   Play,
   Star,
-  Users,
-  BarChart3,
-  Activity,
   Eye,
   Brain,
   Sparkles,
@@ -27,7 +24,6 @@ import Footer from '../components/Footer';
 import './LandingPage.css';
 
 export default function LandingPage() {
-  const statsRef = useRef(null);
   
   useEffect(() => {
     const observer = new IntersectionObserver(

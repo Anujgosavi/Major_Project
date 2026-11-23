@@ -1,11 +1,24 @@
 /* src/App.css */
 :root {
-  --color-primary: #10b981;
-  --color-primary-hover: #059669;
-  --color-primary-light: #34d399;
-  --bg-dark: #090d16;
-  --bg-card: rgba(255, 255, 255, 0.03);
-  --border-subtle: rgba(255, 255, 255, 0.07);
+  --color-primary: #d47a5b;
+  --color-primary-hover: #c46c4e;
+  --color-primary-light: #e59074;
+  --color-accent-pink: #f2b7a9;
+  --color-accent-pink-hover: #f7cac0;
+  --color-terracotta: #d47a5b;
+  --color-clay: #c6724b;
+  
+  --bg-dark: #18110b;
+  --bg-dark-elevated: #201610;
+  --bg-dark-surface: #271c14;
+  --bg-card: rgba(255, 235, 228, 0.04);
+  --bg-card-hover: rgba(255, 235, 228, 0.07);
+  --border-subtle: rgba(255, 220, 205, 0.08);
+  --border-focus: rgba(242, 183, 169, 0.4);
+
+  --text-primary: #fdfaf7;
+  --text-secondary: #d6c3bb;
+  --text-muted: #9e8b82;
 }
 
 * {
@@ -18,12 +31,12 @@
 }
 
 body {
-  background-color: #090d16;
-  color: #f1f5f9;
+  background-color: #18110b;
+  color: #fdfaf7;
   overflow-x: hidden;
 }
 
-/* Sleek Minimal Scrollbars */
+/* Sleek Minimal Warm Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -32,9 +45,9 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(212, 122, 91, 0.2);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(242, 183, 169, 0.4);
 }
